@@ -1,75 +1,84 @@
 # agent-onboarding
 
-Turn any repo into a self-improving agent environment.
+Build a harness for any Claude agent — single expert or multi-expert orchestrated system.
 
 ---
 
 ## Quick Install
 
-**1. Install the plugin**
-
 ```bash
 claude plugin marketplace add namelesstherebel/agent-onboarding && claude plugin install agent-onboarding
 ```
 
-**2. Confirm it is installed**
-
-```bash
-claude plugin list
-```
-
-You should see `agent-onboarding` with status `installed`. If it is not listed, re-run the install command above.
-
-**3. Run onboarding**
-
-Open Claude Code in the repo you want to set up. If `*onboard` works, use it. If Claude doesn't recognize it, paste this prompt:
-
-```
-Run the agent-onboarding workflow. Read the plugin's commands*onboard.md and execute the full 7-phase onboarding process for this repository.
-```
+Then open Claude Code in your project and type `*onboard`.
 
 ---
 
 ## What It Does
 
-**Onboarding workflow** — a 7-phase guided process that interviews you about your project and produces `CLAUDE.md`, `INTENT.md`, `PROJECT_BRIEF.md`, `SPEC_INVENTORY.md`, and a full `SPECS/` directory.
+The plugin classifies your agent and builds a **harness** — the infrastructure that gives it durable memory, grounded retrieval, and a built-in improvement loop.
 
-**Works on greenfield projects and existing codebases** — for existing repos, it runs a 3-stage pre-analysis (structural scan → convention extraction → pattern mining) before asking a single question. It leads with what it found.
+**Two architectures:**
 
-**Self-improving runtime** — installed into your repo during onboarding. It tracks friction during tasks (gaps in specs, missing context, unclear intent, backtracking), logs errors, audits context hygiene, and generates improvement proposals into `IMPROVEMENT_QUEUE.md`. You review proposals with `*review`. Approved changes get merged back into the affected artifacts, incrementing their version.
+- **Simple** — one Claude instance with a LightRAG corpus (what it knows cold) and a MemPalace memory store (what it learns). For chatbots, assistants, and single-domain agents.
+- **Complex** — an orchestrator Claude plus N expert Claude instances, each with their own isolated corpus and memory. For agents that require genuinely different domain expertise working together.
 
-**Context best practices built in** — the plugin enforces lean context engineering: CLAUDE.md stays under 200 lines with universal rules only, conditional instructions go in `.claude/rules/` with glob patterns (zero context cost when inactive), formatting rules stay in tooling, and the self-improvement loop prunes stale instructions alongside adding new ones. Token budget targets are built into the workflow.
-
-**Decision log** — onboarding produces `CONTEXT/decisions.md`, an append-only log of architectural and convention decisions with rationale. The "why" behind choices is the context most vulnerable to loss. It is never summarized or pruned.
-
-**Git worktree support** — optional Phase 5F walks you through setting up behavior profiles for worktrees. Each profile gets its own `CLAUDE.md` and `INTENT.md` as pure behavioral contracts (project-agnostic, reusable across repos). A `WORKTREES.md` at root documents the profiles, branch naming patterns, usage commands, and the full inheritance chain.
+**Self-improvement is the gate pattern.** Every turn: pre-gate retrieves relevant knowledge and memory → Claude responds → post-gate persists new facts and insights. The agent improves by doing its job.
 
 ---
 
-## Commands
+## How It Works
 
-These are star commands. Type them in Claude Code once the plugin is installed.
+**`*onboard`** — Classify and build. Five questions determine the architecture. Then targeted questions fill in the domain knowledge (LightRAG corpus), memory categories (MemPalace write taxonomy), and retrieval rules. Output is a directory of harness files the agent loads at runtime.
 
-| Command | What it does |
-|---------|-------------|
-| `*onboard` | Start or resume the 7-phase onboarding workflow |
-| `*review` | Surface pending improvement proposals for approval/rejection |
-| `*reflect` | Manually trigger a friction review, proposal generation, and context reconciliation |
-| `*status` | Report environment health: spec coverage, open proposals, last activity |
+**`*reflect`** — Review MemPalace health: surface provisional insights, stale derivations, corpus gaps.
 
-Star commands work because the plugin provides a `CLAUDE.md` that Claude Code loads into context. If `*onboard` doesn't fire immediately, use the fallback prompt above — it produces the same result.
+**`*review`** — Process provisional MemPalace items: promote confirmed insights to active, deprecate stale ones.
+
+**`*status`** — Harness health report: memory stats, LightRAG status, gate health.
 
 ---
 
-## Setup Guide
+## What Gets Generated
 
-### Install the plugin
+```
+[agent-name]/
+├── CLAUDE.md                     ← harness entry point: persona + gate protocol + memory pointers
+├── core/
+│   ├── GATES.md                  ← pre/post gate rules
+│   └── INVARIANTS.md             ← the five invariants
+├── memory/
+│   ├── LIGHTRAG.md               ← corpus sources + ingestion checklist
+│   ├── MEMPALACE.md              ← what gets saved, when, confidence rules
+│   └── WRITE-TAXONOMY.md         ← 5–8 MemPalace categories
+├── retrieval/
+│   ├── QUERY-FORMATION.md        ← how prompts become retrieval queries
+│   └── GROUNDING.md              ← groundedness check rules
+└── observability/
+    └── HEALTH.md                 ← health metrics and alert thresholds
+```
+
+Complex agents also get:
+
+```
+└── subagents/
+    ├── ORCHESTRATOR.md           ← routing rules, authority boundaries
+    ├── TOPOLOGY.md               ← expert list + connection pattern
+    └── experts/
+        └── [expert-name]/        ← same structure as above, per expert
+```
+
+---
+
+## Install & Update
+
+**Install:**
 
 ```bash
 claude plugin marketplace add namelesstherebel/agent-onboarding && claude plugin install agent-onboarding
 ```
 
-To reinstall after an update:
+**Update:**
 
 ```bash
 claude plugin marketplace remove agent-onboarding
@@ -77,110 +86,29 @@ claude plugin marketplace add namelesstherebel/agent-onboarding
 claude plugin install agent-onboarding
 ```
 
-### Verify installation
+**Verify:**
 
-Run `claude plugin list` in your terminal and confirm `agent-onboarding` appears with status `installed`.
-
-### Run onboarding
-
-Open Claude Code in your target repo and type `*onboard`. The agent reads your codebase first, then walks you through 7 phases. Use these signals at any point to control the flow:
-
-| Signal | Action |
-|--------|--------|
-| `ready` or `next` | Advance to the next phase |
-| `skip` | Accept placeholders and advance |
-| `pause` | Save progress and stop cleanly |
-| `back` | Return to the previous phase |
-
-After onboarding, your repo will contain:
-
-```
-your-repo/
-├── CLAUDE.md                <- Agent context (lean, <200 lines, universal rules only)
-├── INTENT.md                <- Agent intent and trade-off rules
-├── PROJECT_BRIEF.md         <- Project overview
-├── SPEC_INVENTORY.md        <- Task inventory and spec queue
-├── RUNTIME.md               <- Self-improving runtime
-├── IMPROVEMENT_QUEUE.md     <- Proposal queue
-├── ONBOARDING_STATE.md      <- Onboarding progress tracker
-├── WORKTREES.md             <- Worktree profiles and usage (if worktrees enabled)
-├── .claude/
-│   └── rules/               <- Scoped context (glob-activated, zero cost when inactive)
-├── CONTEXT/
-│   ├── decisions.md         <- Append-only decision log (never summarized)
-│   └── [module files]       <- Agent's understanding of the codebase (not source copies)
-├── SPECS/                   <- Agent-executable specifications
-├── LOGS/
-│   ├── sessions/
-│   └── errors/
-├── profiles/                <- Behavior profiles (if worktrees enabled)
-│   └── [name]/
-│       ├── CLAUDE.md        <- Behavior-mode context
-│       └── INTENT.md        <- Behavior-mode trade-offs
-└── worktrees/               <- Worktree entry points (if worktrees enabled)
-    └── [name]/
-        └── CLAUDE.md        <- Thin file, references root + profile
+```bash
+claude plugin list
 ```
 
-### Verify the runtime is working
-
-After onboarding, run any task in the repo. At the end of every task the agent surfaces a completion notice. If proposals were generated:
-
-```
-Task complete. Review queue has N pending proposal(s). Run *review to approve, reject, or modify.
-```
-
-If the queue is clean:
-
-```
-Task complete. Improvement queue is clean. No proposals pending.
-```
-
-If you are not seeing this notice after tasks, check that `RUNTIME.md` exists in your repo root. If it is missing, re-run `*onboard` to reinstall it.
-
-### Review proposals
-
-Run `*review` after your first task. For each proposal the agent shows what triggered it, which file it proposes to change, the exact change written out, and a confidence level. Respond with `APPROVE`, `REJECT`, or `MODIFY`. Nothing changes in your repo until you do.
+`agent-onboarding` should appear with status `installed`.
 
 ---
 
-## Onboarding Phases
+## Memory Architecture
 
-| Phase | Name | Produces |
-|-------|------|----------|
-| Pre | Existing Repo Analysis | Internal context — structural scan, convention extraction, pattern mining (not a file) |
-| 1 | Project Discovery | `PROJECT_BRIEF.md` |
-| 2 | Context Engineering | `CLAUDE.md`, `.claude/rules/`, `CONTEXT/` (including `decisions.md`) |
-| 3 | Intent Engineering | `INTENT.md` |
-| 4 | Specification Readiness | `SPEC_INVENTORY.md` |
-| 5 | Environment Build | File structure, scoped rules, dependencies, runtime, *(optional)* worktree profiles |
-| 6 | Specification Writing | `SPECS/*.md` |
-| 7 | Verify and Launch | Structural + behavioral validation, handoff to runtime |
+The harness uses two stores:
 
-For existing repos, the Pre phase runs a 3-stage pipeline before any questions: structural analysis (file listing, stack detection, existing artifacts), convention extraction (naming patterns, error handling style, testing conventions sampled across files), and pattern mining (implicit intentional patterns, undocumented workarounds, dead code signals). The workflow then leads with what it found and only asks about gaps.
+| Store | Purpose | Characteristics |
+|-------|---------|-----------------|
+| **LightRAG** | Domain knowledge the agent knows cold | Static, ingested once, queried via direct chunk retrieval |
+| **MemPalace** | What the agent learns about users and context | Dynamic, grows every turn, scoped per agent |
 
-Phase 7 verification is behavioral, not just structural — the agent runs a real task end-to-end and confirms it completes without asking questions already answered by the onboarded artifacts.
+Every MemPalace item carries metadata: timestamp, source, confidence, status, and provenance for derived insights. Superseded items stay in the store for audit — they're just filtered from default retrieval.
 
 ---
 
-## Git Worktree Support
+## License
 
-At the end of Phase 5 (after the smoke test), the onboarding flow asks:
-
-*"Do you plan on using git worktrees with this repo?"*
-
-If yes, Phase 5F runs and produces:
-
-- **`/profiles/[name]/`** — one directory per behavior profile, each containing a `CLAUDE.md` (allowed actions, restrictions, focus) and `INTENT.md` (goal, priority order, uncertainty protocol)
-- - **`/worktrees/[name]/`** — thin `CLAUDE.md` files that reference the root context and the matching profile
-  - - **`WORKTREES.md`** — documents profiles, branch naming patterns, usage commands, and the inheritance chain
-   
-    - Default profiles suggested: `scaffold`, `refactor`, `debug`, `review`. Custom profiles are accepted.
-   
-    - **Key constraint:** profile files are project-agnostic — no stack names, filenames, or domain terms. Those live in root `CLAUDE.md`. Profiles are behavioral contracts only, which makes them reusable across repos.
-   
-    - ---
-
-    ## License
-
-    MIT — Copyright (c) 2026 Stefan Kuczynski
+MIT — Copyright (c) 2026 Stefan Kuczynski

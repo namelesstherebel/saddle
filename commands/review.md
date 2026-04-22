@@ -1,49 +1,35 @@
 # *review
 
-Surface pending improvement proposals for human review and approval.
+Process provisional MemPalace items — promote confirmed insights, deprecate stale ones.
 
 ## Behavior
 
-1. Read `IMPROVEMENT_QUEUE.md`
-2. Filter for all proposals with status `PENDING`
-3. If no pending proposals: report "No pending proposals. Environment is clean." and suggest `*reflect` if the user wants to generate proposals from recent work.
-4. For each pending proposal, present:
+1. Surface all `status: provisional` items (run `fmp list` filtered by status, or `fmp search "status:provisional"`).
+
+2. If none: report "No provisional items. MemPalace is clean." Done.
+
+3. For each provisional item, present:
 
 ```
-PROPOSAL [ID] — [affected artifact]
-Triggered by: [friction type or error]
-Confidence: [HIGH/MEDIUM/LOW] | Human decision required: [YES/NO]
+[ID] — [category]
+Claim: [the fact or insight]
+Written: [date] | Source: [agent_derived / user_asserted]
+Confidence: [inferred / observed]
+Provenance: [what it was derived from, if any]
 
-[Full proposal content]
-
-Recommended action: [APPROVE / REJECT / MODIFY]
-Your decision: _____
+Options:
+  PROMOTE — user confirms this is correct → confidence: user_confirmed, status: active
+  DEPRECATE — no longer relevant → status: deprecated
+  KEEP — leave as provisional for now
 ```
 
-5. Process the user's decision:
-   - **APPROVE** — Apply the proposed change to the affected artifact. Update proposal status to `APPROVED`. If a spec was changed, increment its version number and add a version history entry.
-   - **REJECT** — Update status to `REJECTED`. Ask for a brief reason. Record the reason so the agent does not re-propose the same change.
-   - **MODIFY** — Let the user edit the proposal inline. Apply the modified version. Status becomes `APPROVED (MODIFIED)`.
+4. Process the decision:
+   - **PROMOTE** → update item: `confidence: user_confirmed`, `status: active`, append to `confidence_history`
+   - **DEPRECATE** → update item: `status: deprecated`, log reason
+   - **KEEP** → no change
 
-6. Move processed proposals to the "Processed Proposals" section of `IMPROVEMENT_QUEUE.md`.
-7. Update the Queue Summary counts.
+5. Report summary: "Reviewed [N] provisional items. [N] promoted, [N] deprecated, [N] kept."
 
-## INTENT.md Proposals
+## Note
 
-When any proposal targets `INTENT.md`, display this warning **before** showing the proposal:
-
-```
-⚠️  INTENT.MD CHANGE PROPOSED ⚠️
-
-This proposal modifies the agent's core intent rules. Changes to INTENT.md
-affect how ALL agents behave in this environment going forward.
-
-Please read this carefully before approving.
-This cannot be auto-applied. You must explicitly type APPROVE INTENT CHANGE to confirm.
-```
-
-Do not apply INTENT.md changes without the explicit `APPROVE INTENT CHANGE` confirmation.
-
-## After Review
-
-Report summary: "Reviewed [N] proposals. [N] approved, [N] rejected, [N] modified."
+Superseded items are not shown here — they're already filtered from retrieval. This command is only for active provisional items awaiting verification.

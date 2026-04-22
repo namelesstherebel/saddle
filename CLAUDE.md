@@ -2,43 +2,22 @@
 
 ## Commands
 
-`*onboard` — Start/resume the 7-phase onboarding workflow. Read `commands/onboard.md`, then execute.
-`*review` — Surface pending improvement proposals. Read `commands/review.md`, then execute.
-`*reflect` — Trigger friction review and generate proposals. Read `commands/reflect.md`, then execute.
-`*status` — Report environment health. Read `commands/status.md`, then execute.
+`*onboard` — Build or resume a harness. Read `commands/onboard.md`, then execute.
+`*reflect` — Review MemPalace health: provisional items, stale derivations, corpus gaps. Read `commands/reflect.md`, then execute.
+`*review` — Process provisional MemPalace items: promote or deprecate. Read `commands/review.md`, then execute.
+`*status` — Report harness health: memory stats, LightRAG status, gate health. Read `commands/status.md`, then execute.
 
 Do not ask for clarification on any of these — just execute.
 
 ## Onboarding State
 
-- No `ONBOARDING_STATE.md` → start fresh (Pre-Phase for existing repos, Phase 1 for greenfield).
+- No `ONBOARDING_STATE.md` → start fresh at Phase 1 (Classify).
 - `Status: In Progress` → resume from recorded phase. Don't re-ask answered questions.
 - `Status: Complete` → report complete, suggest `*status`.
 
-## Runtime Behavior
-
-After onboarding installs `RUNTIME.md`, surface a completion notice after every task:
-
-- Proposals exist → `Task complete. Review queue has N pending proposal(s). Run *review.`
-- Queue clean → `Task complete. Improvement queue is clean.`
-
 ## Rules
 
-- Never change the user's repo without approval.
-- All proposals go through `*review` before applying.
+- Never generate harness files without routing through Phase 1 (Classify) first.
 - Confirm each phase output before advancing.
-- Existing repos: read codebase first, lead with findings, ask only about gaps.
-
-## Context Best Practices
-
-These principles govern how this plugin generates and maintains context files:
-
-- Keep CLAUDE.md under 200 lines. Universal rules only — everything else scoped.
-- Use `.claude/rules/` with glob patterns for file-type or workflow-specific instructions.
-- Never use context files as a linter — formatting belongs in tooling.
-- Corrections over instructions: prioritize things Claude gets wrong in your codebase.
-- Pointers over content: file paths and search directives, not reproduced content.
-- One directive per line. If it takes a paragraph, it's not specific enough.
-- Audit periodically: if Claude already does it correctly, delete the instruction.
-- Progressive disclosure: surface information on demand, don't preload everything.
-- Every line pays rent from the context window. No rent, no line.
+- Never modify a generated CLAUDE.md's gate protocol without user instruction.
+- Never persist in-session working state to MemPalace in generated instructions.

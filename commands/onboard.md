@@ -1,43 +1,28 @@
 # *onboard
 
-Start or resume the agent onboarding workflow for this repository.
+Build a harness for a new agent — or resume an in-progress one.
 
 ## Behavior
 
-When invoked, determine the current state:
+Check state before doing anything:
 
-1. **No `ONBOARDING_STATE.md` exists** — Start fresh from Pre-Phase (Existing Repo Analysis) or Phase 1 (Project Discovery) depending on whether the repo has existing content.
-
-2. **`ONBOARDING_STATE.md` exists with `Status: In Progress`** — Resume from the recorded phase and next action. Do not re-ask questions that have already been answered.
-
-3. **`ONBOARDING_STATE.md` exists with `Status: Complete`** — Report that onboarding is already complete. Suggest `*status` to check environment health or offer to re-run specific phases if the user wants to update artifacts.
+1. **No `ONBOARDING_STATE.md`** → start fresh at Phase 1 (Classify)
+2. **`Status: In Progress`** → resume from recorded phase, do not re-ask answered questions
+3. **`Status: Complete`** → report complete, suggest `*status`
 
 ## Workflow
 
-Execute the full onboarding skill defined in `skills/agent-onboarding/SKILL.md`:
+Execute `skills/agent-onboarding/SKILL.md`:
 
-- **Phase 1** — Project Discovery → produces `PROJECT_BRIEF.md`
-- **Phase 2** — Context Engineering → produces `CLAUDE.md`, `CONTEXT/`, optionally `ENVIRONMENT.md`
-- **Phase 3** — Intent Engineering → produces `INTENT.md`
-- **Phase 4** — Specification Readiness → produces `SPEC_INVENTORY.md`
-- **Phase 5** — Environment Build → installs file structure, dependencies, runtime
-- **Phase 6** — Specification Writing → produces `SPECS/*.md`
-- **Phase 7** — Verify & Launch → validates everything, marks onboarding complete
+- **Phase 1** — Classify: 5 questions → route to Simple or Complex
+- **Phase 2S** (Simple) — Gather corpus/memory/retrieval info → generate harness files
+- **Phase 2C** (Complex) — Reason expert set → per-expert gather → generate all harnesses
 
 ## Signals
 
-The user can control flow with these signals at any point:
-
 | Signal | Action |
 |--------|--------|
-| `ready` / `next` | Advance to next phase |
-| `skip` | Accept placeholders for current phase, advance |
-| `pause` | Save state to `ONBOARDING_STATE.md`, stop cleanly |
+| `ready` / `next` | Confirm current phase output, advance |
+| `skip` | Accept defaults for current phase, advance |
+| `pause` | Write `ONBOARDING_STATE.md`, stop cleanly |
 | `back` | Return to previous phase |
-
-## Important
-
-- For existing repos: **read the codebase before asking questions**. Lead with what you found, ask only about gaps.
-- For greenfield repos: go straight to Phase 1 questions.
-- Confirm each phase's output with the user before advancing.
-- Write `ONBOARDING_STATE.md` at the end of every session, whether complete or paused.

@@ -1,80 +1,47 @@
 # *status
 
-Report the current health of the agent environment.
+Report harness health.
 
 ## Behavior
 
-Read the environment artifacts and generate a health report:
-
-```markdown
-# Environment Status — [Project Name]
-**Last updated:** [date]
-
-## Spec Coverage
-- Total recurring tasks identified: [N]
-- Specs written: [N] / [N]
-- Specs with version > 1.0: [N] (improved since initial write)
-
-## Improvement Queue
-- Open proposals: [N]
-- Approved this month: [N]
-- Rejected this month: [N]
-
-## Context Hygiene
-- CLAUDE.md line count: [N] / 200 max
-- Scoped rule files (.claude/rules/): [N]
-- Style rules in context files (should be 0): [N]
-- Instructions Claude follows without being told (candidates for removal): [N]
-
-## Harness Coverage
-- Tasks assessed for harness gates: [N]
-- Tasks with harness gates: [N]
-- Specs with 3+ repeated friction (harness candidates): [N]
-
-## Recent Activity
-- Last agent task: [date + task name]
-- Last proposal generated: [date]
-- Last spec updated: [spec name + date]
-- Last context audit: [date]
-
-## Health Flags
-- [Any specs that haven't been updated despite repeated friction]
-- [Any error patterns that haven't been addressed]
-- [Any INTENT.md proposals pending > 7 days]
-- [Any specs with 3+ repeated friction of the same type — harness escalation candidates]
-```
-
-## Data Sources
-
-- `SPEC_INVENTORY.md` — for task count, spec coverage, and harness assessment data
-- `SPECS/*.md` — for version numbers and last-updated dates
-- `IMPROVEMENT_QUEUE.md` — for proposal counts and statuses
-- `LOGS/sessions/` — for last agent task activity
-- `LOGS/errors/` — for error patterns
-- `INTENT.md` — for friction threshold reference
-
-## Health Flags
-
-Flag these conditions when detected:
-
-- **Stale specs** — specs at version 1.0 that have had friction logged against them
-- **Unaddressed errors** — error patterns in `LOGS/errors/` with no corresponding proposal
-- **Queue buildup** — more than 5 pending proposals without a `*review` run
-- **Intent drift** — `INTENT.md` proposals pending for more than 7 days
-- **Missing specs** — tasks in `SPEC_INVENTORY.md` that still have no spec written
-- **Context bloat** — `CLAUDE.md` exceeds 200 lines
-- **Misplaced rules** — conditional/file-specific instructions in `CLAUDE.md` instead of `.claude/rules/`
-- **Tooling duplication** — style or formatting rules in context files instead of linter/formatter configs
-- **Stale instructions** — directives Claude follows correctly without being told (wasted context budget)
-- **Harness candidates** — specs with 3+ friction events of the same type that have not been escalated to harness gates
-- **Unbuilt harness gates** — tasks marked as needing harness gates in `SPEC_INVENTORY.md` that don't have corresponding scripts in `scripts/` or `harness/`
-
-## If Environment Is Not Onboarded
-
-If `RUNTIME.md` does not exist, report:
+Read the harness config and memory state, then report:
 
 ```
-Environment not yet onboarded. Use *onboard to start the setup workflow.
+Harness Status — [agent name]
+Last checked: [date]
+
+MemPalace
+  Total items: [N]
+  Active: [N] | Provisional: [N] | Deprecated: [N] | Superseded: [N]
+  By category: [category: N, category: N, ...]
+  Supersession rate: [N]% (high = taxonomy churning)
+  Provisional unpromoted > 30 days: [N] → run *reflect
+
+LightRAG Corpus
+  Sources: [N]
+  Last ingested: [date or "unknown"]
+  Server: [reachable / unreachable]
+
+Gate Health
+  [If logs/gates.log exists:]
+    Turns logged: [N] (last 7 days)
+    Groundedness: [N]% passed
+    Retrieval empty after retries: [N]%
+    Persist failures: [N]
+  [If no logs:]
+    No gate log found — confirm gates.py or gate instructions are active
+
+Flags
+  [Any provisionals > 30 days unpromoted]
+  [Any persist failures]
+  [LightRAG unreachable]
+  [Corpus sources older than 90 days]
 ```
 
-If `ONBOARDING_STATE.md` shows in-progress, report current phase and suggest resuming with `*onboard`.
+## If Not Onboarded
+
+If `RUNTIME.md` does not exist:
+
+```
+Harness not installed. Run *onboard to build one.
+```
