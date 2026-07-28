@@ -1,4 +1,4 @@
-# *onboard
+# *saddle
 
 Build a repo harness in one sitting.
 
@@ -11,7 +11,7 @@ No state file machine. Check `.claude/scratchpad.md` before doing anything:
 
 ## Workflow
 
-Execute `skills/onboarding/SKILL.md`:
+Execute `skills/saddle/SKILL.md`:
 
 - **Phase 1** — Intent: what the repo does and for whom, intent split, recall formation rules, persona
 - **Phase 2** — Tool inventory: sweep locker/skills/CLIs/MCPs, match against intent, confirm shortlist

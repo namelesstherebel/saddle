@@ -1,5 +1,5 @@
 {
-  "name": "onboarding",
+  "name": "saddle",
   "version": "2.0.0",
   "description": "Onboard a repo into the vault-pattern harness: intent interview, tool inventory (locker/skills/CLIs/MCPs), delegated research, generated CLAUDE.md + scratchpad + graphify knowledge graph, automatic prune + brainscan hygiene.",
   "author": {

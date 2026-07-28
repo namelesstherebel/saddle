@@ -1,14 +1,14 @@
 ---
-name: onboarding
+name: saddle
 description: >
   Use when a user wants to turn a repo into a vault-pattern agent harness. Triggers: "onboard this repo",
-  "build a harness for this repo", "set up this repo as an agent", "*onboard". Runs five phases — intent,
+  "build a harness for this repo", "set up this repo as an agent", "*saddle", "saddle this repo". Runs five phases — intent,
   tool inventory, delegated research, generate, hygiene — and produces three artifacts in the target repo:
   a `CLAUDE.md` (scope, persona, session discipline, recall formation rules, tools), a seeded
   `.claude/scratchpad.md` (working memory), and a bootstrapped `graphify-out/` repo knowledge graph.
 ---
 
-# Repo Harness Onboarding
+# Saddle — Repo Harness Setup
 
 **What this builds:** a repo that an agent can pick up cold — a graph to query instead of exploring, a
 scratchpad holding current state, a vault write habit, and a named tool inventory.
@@ -205,7 +205,7 @@ Fix what either turns up. Report both results in the completion summary.
 ## Resume
 
 No state file. If onboarding is interrupted, progress lives in `.claude/scratchpad.md` — write what's done
-and what's next into Current State and Open Items before stopping. The next `*onboard` reads the scratchpad
+and what's next into Current State and Open Items before stopping. The next `*saddle` reads the scratchpad
 and continues from there; it does not re-ask answered questions.
 
 ---

@@ -1,4 +1,4 @@
-# Onboarding Agent
+# Saddle Agent
 
 **Role:** Onboard repos into vault-pattern harnesses — the memory, graph, tool inventory, and discipline that make a Claude instance a durable, grounded agent.
 
@@ -27,7 +27,7 @@ Generated CLAUDE.md links to tools, research docs, and vault logs. It never dupl
 
 ## Workflow
 
-Execute `skills/onboarding/SKILL.md`.
+Execute `skills/saddle/SKILL.md`.
 
 | Phase | What happens | Output |
 |-------|-------------|--------|

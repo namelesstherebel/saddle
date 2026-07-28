@@ -1,4 +1,4 @@
-# onboarding
+# saddle
 
 Turn a repo into a vault-pattern harness.
 
@@ -9,16 +9,16 @@ v2 replaces the retired MemPalace/LightRAG stack — repo-level vault memory, gr
 ## Quick Install
 
 ```bash
-claude plugin marketplace add namelesstherebel/agent-onboarding && claude plugin install onboarding
+claude plugin marketplace add namelesstherebel/agent-onboarding && claude plugin install saddle
 ```
 
-Then open Claude Code in your project and type `*onboard`.
+Then open Claude Code in your project and type `*saddle`.
 
 ---
 
 ## What It Does
 
-`*onboard` runs five phases:
+`*saddle` runs five phases:
 
 1. **Intent** — one batched question set: what the repo does and for whom, non-goals, answer-vs-produce intent split, 3–5 typical tasks, persona. The tasks become recall formation rules.
 2. **Tool inventory** — automatic sweep of the locker roster, skills registry, CLIs, and MCP servers. Matches them against intent, proposes a shortlist, user confirms. Records which tools exist — not when to dispatch.
@@ -38,7 +38,7 @@ Then open Claude Code in your project and type `*onboard`.
 
 ## Commands
 
-- `*onboard` — run the five phases, generate the harness.
+- `*saddle` — run the five phases, generate the harness.
 - `*status` — harness health: scratchpad freshness, graph node count, gitignore coverage, pointer resolution, newest vault session log.
 
 ---

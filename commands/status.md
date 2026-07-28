@@ -32,5 +32,5 @@ After the report, offer a full `brainscan` rerun for deep audit.
 No `.claude/scratchpad.md` AND no `graphify-out/`:
 
 ```
-Harness not installed. Run *onboard to build one.
+Harness not installed. Run *saddle to build one.
 ```
