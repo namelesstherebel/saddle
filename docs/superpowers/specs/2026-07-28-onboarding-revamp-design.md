@@ -26,7 +26,7 @@ Revamp the `agent-onboarding` plugin (renamed **`onboarding`**) from the retired
 
 Two survive: `*onboard`, `*status`.
 
-## `*onboard` — Four Phases
+## `*onboard` — Five Phases
 
 ### Phase 1 — Intent
 
@@ -49,16 +49,30 @@ Automatic sweep, then user confirms:
 
 Plugin records *which* tools exist for this repo. *When* to dispatch is decided later, at spec/plan stage, by the writing agent.
 
-### Phase 3 — Generate
+### Phase 3 — Research (delegated)
+
+Systematic lookup of what the harness needs to know, executed by locker agents / pi fleet per fleet-routing — not inline.
+
+1. **Derive research questions** from Phase 1 intent + Phase 2 gaps. Standard axes:
+   - Domain best practices (patterns, conventions, pitfalls for what this agent/repo does)
+   - Dependencies (libraries/services the work will need; current versions, known gotchas)
+   - Tooling gaps (useful tools not in locker/arsenal — candidates for new skills or locker agents)
+2. **Confirm before dispatch** — present the research plan (questions + which agent gets each) as one batch; user approves/edits. Token spend is gated here.
+3. **Dispatch** per fleet-routing skill; announce each dispatch (model, task, why).
+4. **Land results as repo docs** — `docs/research/<topic>.md` — so the Phase 4 graphify extract ingests them into the repo graph.
+5. **Main-session verification pass** on all delegated output before accepting (delegate-by-default rule).
+6. Distilled outcomes: load-bearing facts → generated CLAUDE.md (pointers, not prose dumps); open questions → scratchpad open items; tooling gaps → flagged as skill/locker-agent candidates.
+
+### Phase 4 — Generate
 
 Three artifacts in the target repo:
 
 1. **`CLAUDE.md`** — scope/persona + session discipline block + recall formation rules + Tools section.
    Discipline block encodes: graphify query before exploring → work → session log to vault at milestones (`Sessions/YYYY-MM-DD-<repo>-<topic>.md`) → graphify extract with gates before final response → overwrite `.claude/scratchpad.md` at session end.
 2. **`.claude/scratchpad.md`** — seeded: current state, open items, pointers to relevant vault session logs + wiki notes. Candidates suggested via smart-connections lookup, user confirms.
-3. **`graphify-out/`** — bootstrap extract run during onboard (DeepSeek-backed, global CLAUDE.md recipe, extraction gates enforced). `graphify-out/` gitignored.
+3. **`graphify-out/`** — bootstrap extract run during onboard (DeepSeek-backed, global CLAUDE.md recipe, extraction gates enforced). Covers repo source + `docs/research/`. `graphify-out/` gitignored.
 
-### Phase 4 — Hygiene (automatic)
+### Phase 5 — Hygiene (automatic)
 
 - `/prune` pass over the generated CLAUDE.md — lean gate before it ships
 - `/brainscan` over the repo — verify memory layer wired correctly; fix findings
