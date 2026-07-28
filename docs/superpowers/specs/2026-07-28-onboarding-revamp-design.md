@@ -43,7 +43,9 @@ Automatic sweep, then user confirms:
 
 - Locker roster: `~/pi-agent-locker/scripts/run-agent.sh --list`
 - Skill arsenal: `~/.claude/skills-registry.md`
-- Match roster + arsenal against Phase 1 intent → propose shortlist ("these skills / locker agents look useful for this harness")
+- CLIs: relevant installed CLI tools (headroom, rtk, graphify, lb, browser-harness, gh, plus domain-specific ones on PATH)
+- MCP servers: connected/configured servers relevant to the intent (check session MCP list + `claude mcp`)
+- Match roster + arsenal + CLIs + MCPs against Phase 1 intent → propose shortlist ("these skills / locker agents / CLIs / MCPs look useful for this harness")
 - Confirmed picks → **Tools** section in generated CLAUDE.md: name + one-line when-to-use. Pointers only — never duplicate the tool's own docs.
 - Gap found ("no locker agent fits") → flag agent worth creating per token-economy rule. Do not default to Claude subagents.
 
