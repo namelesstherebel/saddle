@@ -1,10 +1,10 @@
 {
-          "name": "agent-onboarding",
-          "version": "1.1.0",
-          "description": "Turn any repo into a self-improving agent environment. Guided 7-phase onboarding produces CLAUDE.md, INTENT.md, PROJECT_BRIEF.md, SPEC_INVENTORY.md, and a full SPECS/ directory. Installs a self-improving runtime that tracks friction, logs errors, and generates structured improvement proposals.",
-          "author": {
-                      "name": "namelesstherebel"
-          },
-          "license": "MIT",
-          "homepage": "https://github.com/namelesstherebel/agent-onboarding"
+  "name": "onboarding",
+  "version": "2.0.0",
+  "description": "Onboard a repo into the vault-pattern harness: intent interview, tool inventory (locker/skills/CLIs/MCPs), delegated research, generated CLAUDE.md + scratchpad + graphify knowledge graph, automatic prune + brainscan hygiene.",
+  "author": {
+    "name": "namelesstherebel"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/namelesstherebel/agent-onboarding"
 }

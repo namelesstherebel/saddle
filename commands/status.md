@@ -4,43 +4,32 @@ Report harness health.
 
 ## Behavior
 
-Read the harness config and memory state, then report:
+Run each check, report pass/warn:
+
+1. **Scratchpad** — `.claude/scratchpad.md` exists + fresh. Fresh = mtime ≥ newest vault session log for this repo. Older → warn "scratchpad stale, session-end overwrite missed"
+2. **Graph** — `graphify-out/graph.json` present, node count > 0
+3. **Gitignore** — `.gitignore` covers `graphify-out/`
+4. **Pointers** — `CLAUDE.md` pointers resolve
+5. **Session log** — newest vault session log for this repo located and reported
+
+## Output
 
 ```
-Harness Status — [agent name]
-Last checked: [date]
+Harness Status — [repo name]
+Checked: [date]
 
-MemPalace
-  Total items: [N]
-  Active: [N] | Provisional: [N] | Deprecated: [N] | Superseded: [N]
-  By category: [category: N, category: N, ...]
-  Supersession rate: [N]% (high = taxonomy churning)
-  Provisional unpromoted > 30 days: [N] → run *reflect
-
-LightRAG Corpus
-  Sources: [N]
-  Last ingested: [date or "unknown"]
-  Server: [reachable / unreachable]
-
-Gate Health
-  [If logs/gates.log exists:]
-    Turns logged: [N] (last 7 days)
-    Groundedness: [N]% passed
-    Retrieval empty after retries: [N]%
-    Persist failures: [N]
-  [If no logs:]
-    No gate log found — confirm gates.py or gate instructions are active
-
-Flags
-  [Any provisionals > 30 days unpromoted]
-  [Any persist failures]
-  [LightRAG unreachable]
-  [Corpus sources older than 90 days]
+Scratchpad    [✓ fresh | ⚠ stale, session-end overwrite missed | ✗ missing]
+Graph         [✓ N nodes | ✗ graph.json missing | ✗ 0 nodes]
+Gitignore     [✓ graphify-out/ covered | ⚠ graphify-out/ not ignored]
+Pointers      [✓ CLAUDE.md resolves | ⚠ N broken pointers]
+Session log   [✓ Sessions/YYYY-MM-DD-<repo>-<topic>.md | ⚠ none found]
 ```
+
+After the report, offer a full `brainscan` rerun for deep audit.
 
 ## If Not Onboarded
 
-If `RUNTIME.md` does not exist:
+No `.claude/scratchpad.md` AND no `graphify-out/`:
 
 ```
 Harness not installed. Run *onboard to build one.

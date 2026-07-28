@@ -1,13 +1,15 @@
-# agent-onboarding
+# onboarding
 
-Build a harness for any Claude agent — single expert or multi-expert orchestrated system.
+Turn a repo into a vault-pattern harness.
+
+v2 replaces the retired MemPalace/LightRAG stack — repo-level vault memory, graphify graphs, locker tool inventory.
 
 ---
 
 ## Quick Install
 
 ```bash
-claude plugin marketplace add namelesstherebel/agent-onboarding && claude plugin install agent-onboarding
+claude plugin marketplace add namelesstherebel/agent-onboarding && claude plugin install onboarding
 ```
 
 Then open Claude Code in your project and type `*onboard`.
@@ -16,96 +18,42 @@ Then open Claude Code in your project and type `*onboard`.
 
 ## What It Does
 
-The plugin classifies your agent and builds a **harness** — the infrastructure that gives it durable memory, grounded retrieval, and a built-in improvement loop.
+`*onboard` runs five phases:
 
-**Two architectures:**
-
-- **Simple** — one Claude instance with a LightRAG corpus (what it knows cold) and a MemPalace memory store (what it learns). For chatbots, assistants, and single-domain agents.
-- **Complex** — an orchestrator Claude plus N expert Claude instances, each with their own isolated corpus and memory. For agents that require genuinely different domain expertise working together.
-
-**Self-improvement is the gate pattern.** Every turn: pre-gate retrieves relevant knowledge and memory → Claude responds → post-gate persists new facts and insights. The agent improves by doing its job.
-
----
-
-## How It Works
-
-**`*onboard`** — Classify and build. Five questions determine the architecture. Then targeted questions fill in the domain knowledge (LightRAG corpus), memory categories (MemPalace write taxonomy), and retrieval rules. Output is a directory of harness files the agent loads at runtime.
-
-**`*reflect`** — Review MemPalace health: surface provisional insights, stale derivations, corpus gaps.
-
-**`*review`** — Process provisional MemPalace items: promote confirmed insights to active, deprecate stale ones.
-
-**`*status`** — Harness health report: memory stats, LightRAG status, gate health.
+1. **Intent** — one batched question set: what the repo does and for whom, non-goals, answer-vs-produce intent split, 3–5 typical tasks, persona. The tasks become recall formation rules.
+2. **Tool inventory** — automatic sweep of the locker roster, skills registry, CLIs, and MCP servers. Matches them against intent, proposes a shortlist, user confirms. Records which tools exist — not when to dispatch.
+3. **Research (delegated)** — derives research questions (domain practices, dependencies, tooling gaps), presents the plan as one batch for approval, dispatches to locker agents / pi fleet, lands results in `docs/research/`, verifies all delegated output in the main session.
+4. **Generate** — writes the three harness artifacts (below) into the target repo.
+5. **Hygiene (automatic)** — `/prune` the generated CLAUDE.md, `/brainscan` the repo, fix findings, report results in the completion summary.
 
 ---
 
 ## What Gets Generated
 
-```
-[agent-name]/
-├── CLAUDE.md                     ← harness entry point: persona + gate protocol + memory pointers
-├── core/
-│   ├── GATES.md                  ← pre/post gate rules
-│   └── INVARIANTS.md             ← the five invariants
-├── memory/
-│   ├── LIGHTRAG.md               ← corpus sources + ingestion checklist
-│   ├── MEMPALACE.md              ← what gets saved, when, confidence rules
-│   └── WRITE-TAXONOMY.md         ← 5–8 MemPalace categories
-├── retrieval/
-│   ├── QUERY-FORMATION.md        ← how prompts become retrieval queries
-│   └── GROUNDING.md              ← groundedness check rules
-└── observability/
-    └── HEALTH.md                 ← health metrics and alert thresholds
-```
-
-Complex agents also get:
-
-```
-└── subagents/
-    ├── ORCHESTRATOR.md           ← routing rules, authority boundaries
-    ├── TOPOLOGY.md               ← expert list + connection pattern
-    └── experts/
-        └── [expert-name]/        ← same structure as above, per expert
-```
+- **`CLAUDE.md`** — scope/persona, session discipline block (graphify query before exploring → work → vault session log at milestones → graphify extract with gates before final response → scratchpad overwrite at session end), recall formation rules, Tools section. Pointers to tools and logs — never duplicated docs.
+- **`.claude/scratchpad.md`** — seeded current state, open items, pointers to relevant vault session logs and wiki notes (candidates via smart-connections lookup, user confirms).
+- **`graphify-out/`** — bootstrap knowledge graph over repo source + `docs/research/`. Gitignored.
 
 ---
 
-## Install & Update
+## Commands
 
-**Install:**
-
-```bash
-claude plugin marketplace add namelesstherebel/agent-onboarding && claude plugin install agent-onboarding
-```
-
-**Update:**
-
-```bash
-claude plugin marketplace remove agent-onboarding
-claude plugin marketplace add namelesstherebel/agent-onboarding
-claude plugin install agent-onboarding
-```
-
-**Verify:**
-
-```bash
-claude plugin list
-```
-
-`agent-onboarding` should appear with status `installed`.
+- `*onboard` — run the five phases, generate the harness.
+- `*status` — harness health: scratchpad freshness, graph node count, gitignore coverage, pointer resolution, newest vault session log.
 
 ---
 
-## Memory Architecture
+## Stack Assumptions
 
-The harness uses two stores:
+Personal tool. Assumes present:
 
-| Store | Purpose | Characteristics |
-|-------|---------|-----------------|
-| **LightRAG** | Domain knowledge the agent knows cold | Static, ingested once, queried via direct chunk retrieval |
-| **MemPalace** | What the agent learns about users and context | Dynamic, grows every turn, scoped per agent |
+- graphify CLI
+- `~/pi-agent-locker`
+- the RAG vault with `Sessions/` logs
+- smart-connections MCP
+- `/prune` and `/brainscan` skills
 
-Every MemPalace item carries metadata: timestamp, source, confidence, status, and provenance for derived insights. Superseded items stay in the store for audit — they're just filtered from default retrieval.
+No migration path from v1.
 
 ---
 
