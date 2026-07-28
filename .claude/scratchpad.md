@@ -9,7 +9,7 @@ v2 vault-pattern revamp COMMITTED (`c887d8d`). Plugin renamed `saddle` (*saddle 
 ## Open Items
 
 - [ ] ~~GitHub repo rename~~ DONE — github.com/namelesstherebel/saddle; local dir now ~/Developer/Programming/saddle
-- [ ] Push to remote (not done — no ask)
+- [x] Pushed — origin https://github.com/namelesstherebel/saddle (HTTPS via gh; SSH remote failed auth)
 - [ ] Dogfood `*saddle` on a real repo; Phase 3 dispatch template unvalidated
 - [ ] Repo graphify bootstrap ran this session — verify graph.json node count if resuming soon
 
