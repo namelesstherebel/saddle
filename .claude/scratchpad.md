@@ -1,4 +1,4 @@
-# Scratchpad — saddle plugin (formerly agent-onboarding/onboarding)
+# Scratchpad — saddle skill (formerly agent-onboarding/onboarding)
 
 Last updated: 2026-07-28
 
@@ -8,7 +8,7 @@ v2 vault-pattern revamp COMMITTED (`c887d8d`). Plugin renamed `saddle` (*saddle 
 
 ## Open Items
 
-- [ ] GitHub repo rename `agent-onboarding` → `saddle` (optional; README install path still points at old name)
+- [ ] ~~GitHub repo rename~~ DONE — github.com/namelesstherebel/saddle; local dir now ~/Developer/Programming/saddle
 - [ ] Push to remote (not done — no ask)
 - [ ] Dogfood `*saddle` on a real repo; Phase 3 dispatch template unvalidated
 - [ ] Repo graphify bootstrap ran this session — verify graph.json node count if resuming soon
@@ -17,4 +17,4 @@ v2 vault-pattern revamp COMMITTED (`c887d8d`). Plugin renamed `saddle` (*saddle 
 
 - Vault session logs: `Sessions/2026-07-28-agent-onboarding-v2-revamp.md` (this revamp, with Dispatch Ledger), `Sessions/2026-03-18-stefans-brain-agent-onboarding.md`, `Sessions/2026-03-17-agent-onboarding-gsd2-concepts.md`
 - Core skill: `skills/saddle/SKILL.md` (222 lines, all five phases + templates)
-- [ ] Reinstall plugin locally: marketplace/plugin name changed to saddle — old `onboarding`/`agent-onboarding` install stale
+- [ ] Uninstall stale plugin install: `claude plugin marketplace remove agent-onboarding` (plugin dropped; /saddle is a local skill now)
