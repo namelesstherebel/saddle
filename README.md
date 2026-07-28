@@ -1,61 +1,29 @@
 # saddle
 
-Turn a repo into a vault-pattern harness.
+Rig a repo with a vault-pattern harness. Personal skill — not distributed.
 
 v2 replaces the retired MemPalace/LightRAG stack — repo-level vault memory, graphify graphs, locker tool inventory.
 
----
+## Use
 
-## Quick Install
+`/saddle` in any repo — the skill lives at `skills/saddle/SKILL.md`, symlinked into `~/.claude/skills/saddle`.
 
-```bash
-claude plugin marketplace add namelesstherebel/agent-onboarding && claude plugin install saddle
-```
-
-Then open Claude Code in your project and type `*saddle`.
-
----
-
-## What It Does
-
-`*saddle` runs five phases:
-
-1. **Intent** — one batched question set: what the repo does and for whom, non-goals, answer-vs-produce intent split, 3–5 typical tasks, persona. The tasks become recall formation rules.
-2. **Tool inventory** — automatic sweep of the locker roster, skills registry, CLIs, and MCP servers. Matches them against intent, proposes a shortlist, user confirms. Records which tools exist — not when to dispatch.
-3. **Research (delegated)** — derives research questions (domain practices, dependencies, tooling gaps), presents the plan as one batch for approval, dispatches to locker agents / pi fleet, lands results in `docs/research/`, verifies all delegated output in the main session.
-4. **Generate** — writes the three harness artifacts (below) into the target repo.
-5. **Hygiene (automatic)** — `/prune` the generated CLAUDE.md, `/brainscan` the repo, fix findings, report results in the completion summary.
-
----
+- `/saddle` — five phases: Intent → Tool inventory (locker/skills/CLIs/MCPs) → Research (delegated to fleet, token-gated) → Generate → Hygiene (auto `/prune` + `/brainscan`)
+- `/saddle status` — harness health: scratchpad freshness, graph node count, gitignore coverage, pointer resolution, newest vault session log
 
 ## What Gets Generated
 
-- **`CLAUDE.md`** — scope/persona, session discipline block (graphify query before exploring → work → vault session log at milestones → graphify extract with gates before final response → scratchpad overwrite at session end), recall formation rules, Tools section. Pointers to tools and logs — never duplicated docs.
-- **`.claude/scratchpad.md`** — seeded current state, open items, pointers to relevant vault session logs and wiki notes (candidates via smart-connections lookup, user confirms).
+- **`CLAUDE.md`** — scope/persona, session discipline block (graphify query before exploring → work → vault session log at milestones → gated graphify extract → scratchpad overwrite at session end), recall formation rules, Tools section. Pointers, never duplicated docs.
+- **`.claude/scratchpad.md`** — seeded current state, open items, pointers to relevant vault session logs and wiki notes.
 - **`graphify-out/`** — bootstrap knowledge graph over repo source + `docs/research/`. Gitignored.
 
----
-
-## Commands
-
-- `*saddle` — run the five phases, generate the harness.
-- `*status` — harness health: scratchpad freshness, graph node count, gitignore coverage, pointer resolution, newest vault session log.
-
----
-
 ## Stack Assumptions
-
-Personal tool. Assumes present:
 
 - graphify CLI
 - `~/pi-agent-locker`
 - the RAG vault with `Sessions/` logs
 - smart-connections MCP
 - `/prune` and `/brainscan` skills
-
-No migration path from v1.
-
----
 
 ## License
 

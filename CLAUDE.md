@@ -1,6 +1,3 @@
-# Saddle Plugin
+# saddle (repo)
 
-`*<name>` → read `commands/<name>.md`, then execute.
-
-- `*saddle` — build a repo harness (intent → tools → research → generate → hygiene)
-- `*status` — harness health
+Source of truth for the `/saddle` skill. The live skill is `skills/saddle/SKILL.md`, symlinked to `~/.claude/skills/saddle` — edit here, takes effect everywhere. Design spec: `docs/superpowers/specs/2026-07-28-onboarding-revamp-design.md`.

@@ -1,8 +1,9 @@
 ---
 name: saddle
 description: >
-  Use when a user wants to turn a repo into a vault-pattern agent harness. Triggers: "onboard this repo",
-  "build a harness for this repo", "set up this repo as an agent", "*saddle", "saddle this repo". Runs five phases — intent,
+  /saddle — rig the current repo with a vault-pattern harness. /saddle status — harness health check.
+  Also triggers on: "saddle this repo", "onboard this repo", "build a harness for this repo",
+  "set up this repo as an agent". Runs five phases — intent,
   tool inventory, delegated research, generate, hygiene — and produces three artifacts in the target repo:
   a `CLAUDE.md` (scope, persona, session discipline, recall formation rules, tools), a seeded
   `.claude/scratchpad.md` (working memory), and a bootstrapped `graphify-out/` repo knowledge graph.
@@ -18,6 +19,8 @@ scratchpad holding current state, a vault write habit, and a named tool inventor
 stale and silently reintroduce retired model names.
 
 Single sitting, five phases, one stop for approval (Phase 3).
+
+**Arguments:** no argument → run the five phases below. `status` → skip to the Status section at the end.
 
 ---
 
@@ -205,7 +208,7 @@ Fix what either turns up. Report both results in the completion summary.
 ## Resume
 
 No state file. If onboarding is interrupted, progress lives in `.claude/scratchpad.md` — write what's done
-and what's next into Current State and Open Items before stopping. The next `*saddle` reads the scratchpad
+and what's next into Current State and Open Items before stopping. The next `/saddle` reads the scratchpad
 and continues from there; it does not re-ask answered questions.
 
 ---
@@ -219,4 +222,31 @@ Done when:
 - `/prune` and `/brainscan` have run and their findings are fixed
 - The summary reports both hygiene results plus any skill / locker-agent candidates found in Phases 2–3
 
-`*status` verifies harness health afterward.
+`/saddle status` verifies harness health afterward.
+
+---
+
+## Status (`/saddle status`)
+
+Run each check, report pass/warn:
+
+1. **Scratchpad** — `.claude/scratchpad.md` exists + fresh. Fresh = mtime ≥ newest vault session log for this repo. Older → warn "scratchpad stale, session-end overwrite missed"
+2. **Graph** — `graphify-out/graph.json` present, node count > 0
+3. **Gitignore** — `.gitignore` covers `graphify-out/`
+4. **Pointers** — `CLAUDE.md` pointers resolve
+5. **Session log** — newest vault session log for this repo located and reported
+
+```
+Harness Status — [repo name]
+Checked: [date]
+
+Scratchpad    [✓ fresh | ⚠ stale, session-end overwrite missed | ✗ missing]
+Graph         [✓ N nodes | ✗ graph.json missing | ✗ 0 nodes]
+Gitignore     [✓ graphify-out/ covered | ⚠ graphify-out/ not ignored]
+Pointers      [✓ CLAUDE.md resolves | ⚠ N broken pointers]
+Session log   [✓ Sessions/YYYY-MM-DD-<repo>-<topic>.md | ⚠ none found]
+```
+
+After the report, offer a full `brainscan` rerun for deep audit.
+
+No `.claude/scratchpad.md` AND no `graphify-out/` → "Harness not installed. Run /saddle to build one."
