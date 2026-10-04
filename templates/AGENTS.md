@@ -7,6 +7,7 @@
 - <Build/test commands: placeholder>
 - <Style or format preferences: placeholder>
 - Ask before: <actions needing approval>
+- Git/CI/CD: work on an isolated branch, stage named paths, record gate results with the tested SHA, and never deploy without separate approval. See [Git, CI and CD guide](../docs/git-ci-cd.md) and [checklist](git-ci-checklist.md). These links resolve from `templates/`; when copying this template into another repository, adjust them to where the Saddle docs live.
 
 ## Memory
 

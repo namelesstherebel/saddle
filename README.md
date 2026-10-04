@@ -10,6 +10,8 @@ A saddled repo has:
 
 The full standard is in [docs/project-standard.md](docs/project-standard.md). Starting points are in [templates/AGENTS.md](templates/AGENTS.md) and [templates/project.json](templates/project.json).
 
+Git onboarding and CI/CD setup guidance is in [docs/git-ci-cd.md](docs/git-ci-cd.md), with a fill-in [checklist](templates/git-ci-checklist.md). It is documentation only and enforces nothing.
+
 ## Use
 
 The skill is [skills/saddle/SKILL.md](skills/saddle/SKILL.md).
