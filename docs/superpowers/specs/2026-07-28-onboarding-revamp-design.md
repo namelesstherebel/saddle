@@ -1,7 +1,9 @@
 # Onboarding Plugin Revamp — Design
 
 Date: 2026-07-28
-Status: Implemented, **partially superseded** — see Amendment 1
+Status: **Superseded** by [the project standard](../../project-standard.md) — kept as historical text. Previously: Implemented, partially superseded (Amendment 1).
+
+> **Superseded.** Saddle is now a lean, coding-tool-agnostic project standard (canonical `AGENTS.md`, `CLAUDE.md` pointer, `.hindsight/project.json`). The vault/graphify harness described below is no longer the design. Nothing below was deleted; existing logs, graphs, and memory are preserved as historical evidence.
 
 ---
 

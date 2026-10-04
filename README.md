@@ -1,30 +1,33 @@
 # saddle
 
-Rig a repo with a vault-pattern harness. Personal skill — not distributed.
+A lean, coding-tool-agnostic project standard, plus a skill that onboards a repo to it and reports its status.
 
-v2 replaces the retired MemPalace/LightRAG stack — repo-level vault memory, graphify graphs, locker tool inventory.
+A saddled repo has:
+
+- **`AGENTS.md`**: canonical project instructions, readable by any coding tool.
+- **`CLAUDE.md`**, optionally: a compatibility pointer to `AGENTS.md` for clients that need it.
+- **`.hindsight/project.json`**: a tracked memory identity descriptor (`schema_version`, `bank_id`, `canonical_remote`).
+
+The full standard is in [docs/project-standard.md](docs/project-standard.md). Starting points are in [templates/AGENTS.md](templates/AGENTS.md) and [templates/project.json](templates/project.json).
 
 ## Use
 
-`/saddle` in any repo — the skill lives at `skills/saddle/SKILL.md`, symlinked into `~/.claude/skills/saddle`.
+The skill is [skills/saddle/SKILL.md](skills/saddle/SKILL.md).
 
-- `/saddle` — five phases: Intent → Tool inventory (locker/skills/CLIs/MCPs) → Research (delegated to fleet, token-gated) → Generate → Hygiene (auto `/prune` + `/brainscan`)
-- `/saddle status` — harness health: scratchpad freshness, graph node count, gitignore coverage, pointer resolution, newest vault session log
+- `/saddle`: onboard the current repo. It preserves existing instructions, infers intent, and asks only about blockers. It checks identity, then checks recall and retain with an authorized, non-sensitive probe.
+- `/saddle status`: report instruction files, descriptor validity, origin match, and the last observed memory mode.
 
-## What Gets Generated
+## Boundaries
 
-- **`CLAUDE.md`** — scope/persona, session discipline block (graphify query before exploring → work → vault session log at milestones → gated graphify extract → scratchpad overwrite at session end), recall formation rules, Tools section. Pointers, never duplicated docs.
-- **`.claude/scratchpad.md`** — seeded current state, open items, pointers to relevant vault session logs and wiki notes.
-- **`graphify-out/`** — bootstrap knowledge graph over repo source + `docs/research/`. Gitignored.
+- Saddle does not create banks, install software, or publish.
+- It ships no identity CLI and no client. The private [hindsight-agent-setup companion](https://github.com/namelesstherebel/hindsight-agent-setup) owns normalization, the local root registry, hooks, auth, and transport (repository access required).
+- Hooks and automatic context injection are not promised in ordinary desktop or cloud chats. Each environment is reported as tested, instruction-only, or unavailable.
+- The descriptor is not access authorization.
 
-## Stack Assumptions
+## Legacy
 
-- graphify CLI
-- `~/pi-agent-locker`
-- the RAG vault with `Sessions/` logs
-- smart-connections MCP
-- `/prune` and `/brainscan` skills
+Earlier versions specified a vault-pattern harness (`logs/`, `graphify-out/`). Existing OpenViking memory is also outside this change. Those are preserved, never silently deleted, and repo-local logs are historical evidence. See the migration note in the standard. The July 2026 [design spec](docs/superpowers/specs/2026-07-28-onboarding-revamp-design.md) is superseded.
 
 ## License
 
-MIT — Copyright (c) 2026 Stefan Kuczynski
+MIT. Copyright (c) 2026 Stefan Kuczynski
