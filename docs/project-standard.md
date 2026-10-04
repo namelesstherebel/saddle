@@ -93,6 +93,8 @@ Onboarding (see [`../skills/saddle/SKILL.md`](../skills/saddle/SKILL.md)):
 
 Status reports: instruction files, descriptor validity, origin match, and the last observed memory mode.
 
+Git onboarding and CI/CD: inspect Git state, record CI gates, and keep deployment separately approved, following [`git-ci-cd.md`](git-ci-cd.md) and the [`checklist`](../templates/git-ci-checklist.md). Report these as `not configured` or `not run` when so; never claim enforcement where only documentation exists. CI does not deploy.
+
 ## 5. Legacy migration note
 
 Earlier Saddle versions specified a vault-pattern harness: `CLAUDE.md` with session discipline, repo-local `logs/` (including `logs/current.md`), and `graphify-out/` graphs. Existing OpenViking/vault memory is also outside this change.

@@ -23,7 +23,8 @@ Normative detail lives in [the standard](../../docs/project-standard.md). Do not
    - Offline: use local git only. The descriptor is not access authorization.
 4. **Recall/retain check.** Within existing authorization and available memory tools, recall relevant context and retain one non-sensitive probe in the verified bank. Do not repeat approval questions already answered. A tested result requires acknowledged completion, not a queued write; report client/date/evidence. Report the mode as `tested`, `instruction-only`, or `unavailable`, and report failures or pending retains honestly. Do not promise hooks or automatic injection.
 5. **Never** create a bank, install anything, or publish. Do not delete or migrate legacy `logs/`, `graphify-out/`, or OpenViking memory; mention them as historical evidence and leave them.
-6. **Summarize** what changed, the memory mode, and what was not verified.
+6. **Git/CI/CD.** Follow [the Git/CI/CD guide](../../docs/git-ci-cd.md) and fill in [the checklist](../../templates/git-ci-checklist.md) as needed: inspect actual repo, index, `origin` and branch state; discover existing test/lint/build commands; record gate evidence with SHA. Inspect before any Git change. Initialize a repo only if it is genuinely new (never nested inside an existing repo), and add or retarget a remote only when the task explicitly authorizes it; never retarget silently. Do not re-ask for authorization the task already gave. Executable CI is a separately assigned pipeline task: do not add workflows, change protections or credentials, or deploy implicitly. Publishing stays off by default (see step 5).
+7. **Summarize** what changed, the memory mode, Git/CI/CD state (`not configured` / `not run` where true), and what was not verified.
 
 ## Status
 
@@ -33,6 +34,7 @@ Report each item as pass/warn/fail, from what was actually observed:
 - `.hindsight/project.json` valid under the standard (exact keys, integer schema 1, stable bank ID, accepted HTTPS/SSH remote)
 - local `origin` matches `canonical_remote` after normalization (lowercase GitHub, SSH = HTTPS, no `.git`)
 - last observed memory mode (`tested` / `instruction-only` / `unavailable`), or "not checked"
+- Git state (branch, upstream, dirty/index), CI gates (command, SHA, result) and CD approval: observed value, `not configured`, or `not run`; docs alone are not enforcement
 - legacy artifacts present (`logs/`, `graphify-out/`), noted only, never flagged for deletion
 
 No instruction file and no descriptor → "Not saddled. Run /saddle."
