@@ -7,7 +7,7 @@
 - <Build/test commands: placeholder>
 - <Style or format preferences: placeholder>
 - Ask before: <actions needing approval>
-- Git/CI/CD: work on an isolated branch, stage named paths, record gate results with the tested SHA, and never deploy without separate approval. See [Git, CI and CD guide](../docs/git-ci-cd.md) and [checklist](git-ci-checklist.md). These links resolve from `templates/`; when copying this template into another repository, adjust them to where the Saddle docs live.
+- Git/CI/CD: work on an isolated branch, stage named paths, record gate results with the tested SHA, and never deploy without separate approval. Keep unfinished scoped work as a draft PR. When authorized delivery is complete, push the final head (no force-push), verify the remote PR/head is the intended one and all required pre-review checks passed on that exact SHA, recheck the head just before, then mark only that PR ready for review unless the user or repository policy says hold/draft. Failing, pending, missing, unknown or skipped required checks block (report; do not weaken gates). If CI/review integration is unavailable, report it and keep draft. Ready is not review approval; never merge or deploy without separate authorization. See [Git, CI and CD guide](../docs/git-ci-cd.md) and [checklist](git-ci-checklist.md). These links resolve from `templates/`; when copying this template into another repository, adjust them to where the Saddle docs live.
 
 ## Memory
 
