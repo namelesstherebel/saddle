@@ -89,11 +89,13 @@ Onboarding (see [`../skills/saddle/SKILL.md`](../skills/saddle/SKILL.md)):
 2. Infer intent from the repo; ask only about blockers.
 3. Check identity: descriptor present and valid, origin matches, `bank_id` kept.
 4. Check recall and retain with an authorized, non-sensitive probe, and report the mode.
-5. Never create a bank, install software, or publish on its own.
+5. Never create a bank, install software, or publish on its own. Onboarding itself does not publish.
 
 Status reports: instruction files, descriptor validity, origin match, and the last observed memory mode.
 
 Git onboarding and CI/CD: inspect Git state, record CI gates, and keep deployment separately approved, following [`git-ci-cd.md`](git-ci-cd.md) and the [`checklist`](../templates/git-ci-checklist.md). Report these as `not configured` or `not run` when so; never claim enforcement where only documentation exists. CI does not deploy.
+
+Ready-for-review policy: agents keep unfinished scoped work as a draft PR. When authorized delivery is complete, they push the final task-branch head (no force-push), verify the remote PR/head is the intended one and that all required applicable pre-review checks passed on that exact SHA, recheck the head immediately before, and then automatically mark only that PR ready for review, unless an explicit user hold/draft instruction or repository policy prevents it. Failing, pending, missing, unknown or skipped required checks block; missing check configuration is a reported blocker, not success. Ready requests review; it is not a review verdict and does not guarantee a reviewer runs. Merge-ready still needs independent review and required checks at the current unchanged head plus separate merge authorization. Never force-push, merge implicitly, or deploy to production; if CI/review integration is unavailable, report it and keep draft. This grants no new repository, access or settings authority. Projects receive this behavior when Saddle is actually applied; existing repos are not changed retroactively. Detail: [`git-ci-cd.md`](git-ci-cd.md).
 
 ## 5. Legacy migration note
 

@@ -28,7 +28,12 @@ CI state: <not configured / configured / not run>
 
 ## Review
 
-- [ ] Draft PR opened
+- [ ] Draft PR opened; kept draft while scoped work is unfinished
+- [ ] Ready-for-review (automatic when delivery is complete, unless user hold/draft or repo policy): <transitioned / already ready / held: reason / blocked: reason>
+  - [ ] Final head pushed, no force-push; remote PR/head matches intended: <sha>
+  - [ ] All required pre-review checks passed on that exact SHA (no failing/pending/missing/unknown/skipped; absent check config is a blocker)
+  - [ ] Head and state rechecked immediately before transition; only the intended PR changed
+  - Ready requests review; it is not a review verdict. CI/review integration unavailable → report, keep draft.
 - [ ] Independent review verdict at head SHA: <sha, verdict>
 - [ ] Required checks passing at that same SHA
 - [ ] No commits since review/checks (otherwise rerun and re-review)

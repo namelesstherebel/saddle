@@ -10,7 +10,7 @@ A saddled repo has:
 
 The full standard is in [docs/project-standard.md](docs/project-standard.md). Starting points are in [templates/AGENTS.md](templates/AGENTS.md) and [templates/project.json](templates/project.json).
 
-Git onboarding and CI/CD setup guidance is in [docs/git-ci-cd.md](docs/git-ci-cd.md), with a fill-in [checklist](templates/git-ci-checklist.md). It is documentation only and enforces nothing.
+Git onboarding and CI/CD setup guidance is in [docs/git-ci-cd.md](docs/git-ci-cd.md), with a fill-in [checklist](templates/git-ci-checklist.md). It is documentation only and enforces nothing. It includes an automatic ready-for-review convention: unfinished work stays draft; on authorized delivery, agents push the final head (no force-push), verify the intended PR and passing required pre-review checks on that exact SHA, then mark only that PR ready unless held. Ready is not a review verdict, merge, or deploy. Adopted repos get this when Saddle is applied; existing repos are not changed retroactively.
 
 ## Use
 
@@ -21,7 +21,7 @@ The skill is [skills/saddle/SKILL.md](skills/saddle/SKILL.md).
 
 ## Boundaries
 
-- Saddle does not create banks, install software, or publish.
+- Saddle does not create banks, install software, or publish during onboarding. Authorized project delivery may push and mark a PR ready under the policy above; it never merges or deploys automatically.
 - It ships no identity CLI and no client. The private [hindsight-agent-setup companion](https://github.com/namelesstherebel/hindsight-agent-setup) owns normalization, the local root registry, hooks, auth, and transport (repository access required).
 - Hooks and automatic context injection are not promised in ordinary desktop or cloud chats. Each environment is reported as tested, instruction-only, or unavailable.
 - The descriptor is not access authorization.

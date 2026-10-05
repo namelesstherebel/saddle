@@ -47,10 +47,26 @@ Ownership: a pipeline worker owns executable CI. Docs and onboarding do not add 
 
 ## 3. Review and merge readiness
 
-- Open a draft PR.
+- Open a draft PR and keep it draft while scoped work is unfinished.
 - Merge-ready requires an independent review verdict at the exact unchanged head SHA, and passing required checks at that same SHA.
 - Any new commit invalidates earlier checks and review; re-run and re-review the new head.
 - Merge-ready is not merge permission. Merging needs separate authorization.
+
+### Automatic ready-for-review
+
+When authorized delivery is complete, the agent pushes the final task-branch head (never a force-push) and then marks only the intended PR ready for review, automatically, unless an explicit user hold/draft instruction or repository policy prevents it. Before the transition:
+
+1. Verify the remote branch and PR are the intended ones and that the remote PR head equals the pushed SHA.
+2. Verify every required, applicable pre-review check (test, lint, build) passed on that exact SHA. Failing, pending, missing, unknown or skipped required checks block. A missing check-set configuration or absent reports is not vacuous success: report the blocker and do not weaken gates.
+3. Recheck the PR head and state immediately before the transition. A changed head invalidates the evidence; restart from step 1.
+
+Notes:
+
+- Ready requests the configured review. It does not guarantee a reviewer exists or runs, and it is not an independent review verdict. Pre-review checks are distinct from downstream review triggered by ready; do not wait on review before marking ready (circular wait).
+- An already-ready PR needs no duplicate transition.
+- If CI or review integration is unavailable, report that accurately and keep the PR draft. Offline mode is not a bypass.
+- This convention grants no new repository, access or settings authority; respect the existing publication scope. It never force-pushes, merges implicitly, or deploys to production. Merge-ready still needs independent review and required checks at the current unchanged head, plus separate merge authorization.
+- Inheritance: a repo receives this behavior only when Saddle is actually applied to it (for example by adopting the `AGENTS.md` template). Existing repos are not changed retroactively.
 
 ## 4. Small-fix loop
 
@@ -67,7 +83,7 @@ CI does not deploy. Deployment needs a separate, explicit approval naming:
 - the relevant passing gates for that commit;
 - a rollback plan and a verification step.
 
-No implicit production release, no credentials handling, and no new persistent access. Publication and deployment are never automatic.
+No implicit production release, no credentials handling, and no new persistent access. Deployment and merging are never automatic. Onboarding itself does not publish; pushing and the ready-for-review transition happen only as authorized project delivery (section 3).
 
 ## 6. Status reporting
 
