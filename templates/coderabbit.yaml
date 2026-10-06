@@ -1,0 +1,14 @@
+# Optional CodeRabbit config template. Copying it is not live shared config.
+# Only emit it for a repo your task authorization covers; verify before use.
+# The default branch is included in auto-review target matching; that does not
+# guarantee a review, since installation, enabled/drafts/filters and plan
+# eligibility still apply. Arrays merge with inherited settings, and global
+# overrides take precedence; ordinary Repository/Organization UI settings are
+# lower priority than repo YAML. Add anchored patterns only for verified,
+# approved additional PR target branches:
+#
+# reviews:
+#   auto_review:
+#     base_branches:
+#       - "^<verified-target-branch>$"
+inheritance: true
