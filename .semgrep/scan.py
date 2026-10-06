@@ -75,7 +75,7 @@ def main(argv):
         return fail("semgrep %s required, found %r" % (PINNED, got))
     cmd = [semgrep, "scan", "--oss-only", "--metrics=off", "--no-trace", "--disable-version-check",
            "--error", "--strict", "--no-rewrite-rule-ids", "--disable-nosem",
-           "--max-target-bytes", "0"]
+           "--max-target-bytes", "0", "--no-exclude-binary-files"]
     for ex in TOOL_EXCLUDES:
         cmd += ["--exclude", ex]
     for cfg in CONFIGS:

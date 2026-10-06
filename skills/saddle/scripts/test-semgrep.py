@@ -150,13 +150,19 @@ class ScannerTests(Base):
         self.assertEqual(run(WIRE, self.repo).returncode, 0)
         self.scan = self.repo / ".semgrep/scan.py"
 
-    def scan_with(self, name, content):
+    def scan_with(self, name, content, installed_ignore=False):
         src = self.base / "src"
         src.mkdir(exist_ok=True)
         for old in src.iterdir():
             old.unlink()
+        if installed_ignore:
+            # the actual installer-generated policy (setUp ran the installer into self.repo)
+            (src / ".semgrepignore").write_bytes((self.repo / ".semgrepignore").read_bytes())
         if name:
-            (src / name).write_text(content)
+            if isinstance(content, bytes):
+                (src / name).write_bytes(content)
+            else:
+                (src / name).write_text(content)
         return run(self.scan, src)
 
     def test_semgrep_available(self):
@@ -283,6 +289,57 @@ class ScannerTests(Base):
         r = self.scan_with("kwsafe.py", "import subprocess\ncmd = input()\n"
                                         "subprocess.run(args=[cmd])\n")
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+    def test_truthy_shell_forms_block_positional_and_keyword(self):
+        for shell in ("True", "1", "2", "-1", "'x'", "['a']", "{'a': 1}"):
+            for call in ("subprocess.run(cmd, shell=%s)", "subprocess.run(args=cmd, shell=%s)"):
+                src = "import subprocess\ncmd = input()\n" + call % shell + "\n"
+                r = self.scan_with("truthy.py", src)
+                self.assertEqual(r.returncode, 1, src + r.stdout + r.stderr)
+                self.assertIn("saddle.python.input-to-shell", r.stdout, src)
+
+    def test_falsy_shell_forms_do_not_block(self):
+        for shell in ("False", "0", "None", "''", "[]", "{}"):
+            for call in ("subprocess.run(cmd, shell=%s)", "subprocess.run(args=cmd, shell=%s)"):
+                src = "import subprocess\ncmd = input()\n" + call % shell + "\n"
+                r = self.scan_with("falsy.py", src)
+                self.assertNotIn("saddle.python.input-to-shell", r.stdout, src + r.stdout)
+                self.assertEqual(r.returncode, 0, src + r.stdout + r.stderr)
+
+    def test_binary_files_scanned(self):
+        r = self.scan_with("payload.min.js", "eval(process.argv[2]);\n", installed_ignore=True)
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("saddle.javascript.eval", r.stdout)
+        r = self.scan_with("polyglot.php", b"GIF89a;\x00\x01<?php eval($_GET['x']); ?>\n",
+                           installed_ignore=True)
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("saddle.php.eval", r.stdout)
+
+    def test_rules_yaml_parses(self):
+        try:
+            from ruamel.yaml import YAML  # the parser used by the pinned Semgrep
+        except ImportError:
+            self.skipTest("ruamel.yaml unavailable; Semgrep load covers parsing")
+        for name in ("rules.yml", "workflow.yml"):
+            self.assertIsInstance(YAML(typ="safe").load((TPL / name).read_text()), dict, name)
+
+    def test_scanner_and_workflow_flags(self):
+        for name in ("scan.py", "workflow.yml"):
+            text = (TPL / name).read_text()
+            self.assertIn("--no-exclude-binary-files", text, name)
+            self.assertNotIn("--no-exclude-minified-files", text, name)
+
+    def test_workflow_matrix_ref_expected_consistent(self):
+        import re
+        text = (TPL / "workflow.yml").read_text()
+        self.assertIn("name: semgrep-${{ matrix.target }}", text)
+        self.assertIn("""'["head","merge"]' || '["head"]'""", text)
+        self.assertIn("fail-fast: false", text)
+        exp = re.search(r"EXPECTED_SHA: (\$\{\{.*?\}\})", text).group(1)
+        refs = re.findall(r"^\s+ref: (\$\{\{.*?\}\})$", text, re.M)
+        self.assertEqual(refs, [exp])
+        self.assertIn("matrix.target == 'merge' && github.sha", exp)
+        self.assertIn("github.event.pull_request.head.sha || github.sha", exp)
 
     def test_large_source_still_scanned(self):
         pad = "# input-to-shell padding\n" * 50000  # > 1 MiB, above Semgrep's default size cap

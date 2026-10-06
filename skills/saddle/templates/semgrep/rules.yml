@@ -17,11 +17,38 @@ rules:
       - pattern: input(...)
       - pattern: sys.argv[...]
     pattern-sinks:
+      # Shell-enabling forms (as upstream audit rule): True, nonzero int (incl. negative), nonempty str/list/dict.
       - patterns:
-          - pattern: subprocess.$FUNC($CMD, ..., shell=True, ...)
+          - pattern-either:
+              - pattern: 'subprocess.$FUNC($CMD, ..., shell=True, ...)'
+              - pattern: 'subprocess.$FUNC($CMD, ..., shell=[$V, ...], ...)'
+              - pattern: 'subprocess.$FUNC($CMD, ..., shell={$K: $V, ...}, ...)'
+              - patterns:
+                  - pattern: 'subprocess.$FUNC($CMD, ..., shell=$INT, ...)'
+                  - metavariable-regex:
+                      metavariable: $INT
+                      regex: '^-?[0-9]*[1-9][0-9]*$'
+              - patterns:
+                  - pattern: 'subprocess.$FUNC($CMD, ..., shell="$STR", ...)'
+                  - metavariable-regex:
+                      metavariable: $STR
+                      regex: '.+'
           - focus-metavariable: $CMD
       - patterns:
-          - pattern: subprocess.$FUNC(..., args=$CMD, ..., shell=True, ...)
+          - pattern-either:
+              - pattern: 'subprocess.$FUNC(..., args=$CMD, ..., shell=True, ...)'
+              - pattern: 'subprocess.$FUNC(..., args=$CMD, ..., shell=[$V, ...], ...)'
+              - pattern: 'subprocess.$FUNC(..., args=$CMD, ..., shell={$K: $V, ...}, ...)'
+              - patterns:
+                  - pattern: 'subprocess.$FUNC(..., args=$CMD, ..., shell=$INT, ...)'
+                  - metavariable-regex:
+                      metavariable: $INT
+                      regex: '^-?[0-9]*[1-9][0-9]*$'
+              - patterns:
+                  - pattern: 'subprocess.$FUNC(..., args=$CMD, ..., shell="$STR", ...)'
+                  - metavariable-regex:
+                      metavariable: $STR
+                      regex: '.+'
           - focus-metavariable: $CMD
       - pattern: os.system(...)
     metadata:
