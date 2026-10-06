@@ -34,14 +34,14 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: namelesstherebel/saddle
-          ref: f860066c2ef3269bae105c00488694215a9a973a
+          ref: 9344d09eb3fe5025d87b514adcb079af9632dd09
           path: .semgrep-policy
           persist-credentials: false
       - name: Verify trusted policy
         run: |
           set -eu
           P=.semgrep-policy
-          test "$(git -C "$P" rev-parse HEAD)" = "f860066c2ef3269bae105c00488694215a9a973a" \
+          test "$(git -C "$P" rev-parse HEAD)" = "9344d09eb3fe5025d87b514adcb079af9632dd09" \
             || { echo "policy checkout commit mismatch"; exit 2; }
           for f in .semgrep/rules.yml .semgrep/gitlab-rules.yml .semgrepignore; do
             test -f "$P/$f" && test ! -L "$P/$f" || { echo "missing trusted policy file: $f"; exit 2; }
@@ -50,7 +50,7 @@ jobs:
             || { echo "rules.yml digest mismatch"; exit 2; }
           echo "01e5294fec95488f7b89b4e5810b5cd987c56eb80379ab2a219a5bbde3f87c35  $P/.semgrep/gitlab-rules.yml" | sha256sum -c - \
             || { echo "gitlab-rules.yml digest mismatch"; exit 2; }
-          echo "5c368ad2f54a6f9424f5d80f4f0d66f056ae2711533cdcf34f72259d9a77e982  $P/.semgrepignore" | sha256sum -c - \
+          echo "9ed37ee9e32fc2874f5bd3c9c87e051f03dc6fede35543da9716a6e8d83b6311  $P/.semgrepignore" | sha256sum -c - \
             || { echo ".semgrepignore digest mismatch"; exit 2; }
       - name: Install pinned Semgrep CE (engine only; dependencies are not locked)
         working-directory: ${{ runner.temp }}

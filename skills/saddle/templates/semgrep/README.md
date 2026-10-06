@@ -54,19 +54,20 @@ no runners.
 ## Test status
 Upstream fixtures currently pass for 64/64 Python and 8/8 JS test groups. Some rules have no upstream
 annotated cases, so not all 79 are individually regression tested. The reviewed coverage corrections
-passed 30/30 tested regressions; this is a local checkpoint recorded at policy commit
-`f860066c2ef3269bae105c00488694215a9a973a`, not a guarantee for future remote changes.
+passed 30/30 tested regressions, and the latest local run passed 31 tests in 84.500 seconds. This is a
+local checkpoint recorded at policy commit `9344d09eb3fe5025d87b514adcb079af9632dd09`, not a guarantee
+for future remote changes.
 
 Coverage notes: the Python sink rule matches both positional and keyword `args=` forms. The local scan
 helper rejects surplus scanner arguments (exit 2).
 
 ## CI trusted policy
 CI fetches `namelesstherebel/saddle` at the fixed public commit
-`f860066c2ef3269bae105c00488694215a9a973a` into `.semgrep-policy` (same pinned checkout action,
+`9344d09eb3fe5025d87b514adcb079af9632dd09` into `.semgrep-policy` (same pinned checkout action,
 `persist-credentials: false`); the PR head stays checked out in the root. Both rule files load only from the
 policy checkout, after SHA256 verification (`rules.yml` `e26005346a43b83bb7f0ba00586f7e10600803bdb120b0c818705d13986469f6`,
 `gitlab-rules.yml` `01e5294fec95488f7b89b4e5810b5cd987c56eb80379ab2a219a5bbde3f87c35`, unchanged; the trusted
-`.semgrepignore` `5c368ad2f54a6f9424f5d80f4f0d66f056ae2711533cdcf34f72259d9a77e982` is verified too). A missing,
+`.semgrepignore` `9ed37ee9e32fc2874f5bd3c9c87e051f03dc6fede35543da9716a6e8d83b6311` is verified too). A missing,
 unavailable or corrupted policy fails clearly. No code from the policy checkout or the PR project is executed.
 Pin and digests are intentionally fixed; upgrades need review.
 
@@ -92,9 +93,11 @@ GitHub-hosted runner, an exact-SHA action pin and inline isolated Python, and ne
 Only if a Mac sandbox yields empty trust anchors, set `SSL_CERT_FILE=<path-to-trusted-CA-bundle>` (platform-specific). Never disable TLS.
 
 ## Ignored files
-`.semgrepignore` (created only if absent) excludes `node_modules/`, `vendor/`, `.venv/`, `build/`, `dist/`,
-plus `.venv-semgrep/` and the tooling `.semgrep/`. Tests are scanned. An existing user `.semgrepignore` is
-never changed. In CI the trusted ignore replaces PR ignores and git-ignore is disabled (see CI trusted policy).
+`.semgrepignore` (created only if absent) excludes, all root anchored, `node_modules`, `vendor`, `.venv`,
+`build`, `dist`, `.venv-semgrep` and `.semgrep`. Tests are scanned. Nested source directories with these
+names (e.g. `src/vendor`, `app/build`) remain scanned. The actual 8-repo inventory found zero tracked files
+under these names; do not add broad exclusions for future adopters without an inventory. Existing coverage
+limitations remain. An existing user `.semgrepignore` is never changed. In CI the trusted ignore replaces PR ignores and git-ignore is disabled (see CI trusted policy).
 
 ## Run locally (local use only; CI never runs this helper)
 ```
