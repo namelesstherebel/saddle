@@ -52,20 +52,31 @@ option. It rejects unknown option tokens with usage and exit 2. It installs no m
 no runners.
 
 ## Test status
-Upstream fixtures currently pass for 64/64 Python and 8/8 JS test groups. Some rules have no upstream
-annotated cases, so not all 79 are individually regression tested. The reviewed coverage corrections
-passed 30/30 tested regressions, and the latest local run passed 31 tests in 84.500 seconds. This is a
-local checkpoint recorded at policy commit `9344d09eb3fe5025d87b514adcb079af9632dd09`, not a guarantee
-for future remote changes.
+Upstream fixtures: the earlier 72 groups (64 Python, 8 JS) are historical and unchanged. Some rules have no
+upstream annotated cases, so not all 79 are individually regression tested. The latest local run passed 37
+tests in 164.199 seconds with no skips, and the ruamel YAML parse passed. This is a local checkpoint for
+policy commit `8744cbf8de7f1a6466c284718ece929f6aa21711`, not a guarantee for future remote changes.
 
-Coverage notes: the Python sink rule matches both positional and keyword `args=` forms. The local scan
-helper rejects surplus scanner arguments (exit 2).
+Verified regressions include:
+- Binary filtering is explicitly disabled (`--no-exclude-binary-files`). The original min.js and ASCII
+  GIF/PHP claims were not reproduced with the installed ignore, so they are not claimed as proven. New
+  min.js and NUL-containing GIF/PHP fixtures block.
+- The custom input-to-shell taint rule handles a literal `True`, positive and negative nonzero decimal
+  integers, and nonempty strings, lists and dicts, in positional and keyword (`args=`) forms. It does not
+  claim arbitrary unknown expressions or exhaustive Python truthiness. `False`, `0`, `None` and empty
+  str/list/dict are tested as nonblocking.
+- The local scan helper rejects surplus scanner arguments (exit 2).
 
 ## CI trusted policy
-CI fetches `namelesstherebel/saddle` at the fixed public commit
-`9344d09eb3fe5025d87b514adcb079af9632dd09` into `.semgrep-policy` (same pinned checkout action,
-`persist-credentials: false`); the PR head stays checked out in the root. Both rule files load only from the
-policy checkout, after SHA256 verification (`rules.yml` `e26005346a43b83bb7f0ba00586f7e10600803bdb120b0c818705d13986469f6`,
+Pull requests run two separate jobs: the exact PR head and the prospective `github.sha` merge commit. Push
+and manual runs scan the head only. Each job asserts its checked-out SHA; neither grants merge authority.
+
+CI fetches `namelesstherebel/saddle` at the fixed commit
+`8744cbf8de7f1a6466c284718ece929f6aa21711` into `.semgrep-policy` (same pinned checkout action,
+`persist-credentials: false`); the checked-out target stays in the root. Durable prerequisite: the public
+policy bytes at this commit must be verified against the digests below before any adopter uses the pin.
+Both rule files load only from the
+policy checkout, after SHA256 verification (`rules.yml` `181929cab5bd0026f1a9b70464593c4540cfb342482bac8a3e77415db479eb4e`,
 `gitlab-rules.yml` `01e5294fec95488f7b89b4e5810b5cd987c56eb80379ab2a219a5bbde3f87c35`, unchanged; the trusted
 `.semgrepignore` `9ed37ee9e32fc2874f5bd3c9c87e051f03dc6fede35543da9716a6e8d83b6311` is verified too). A missing,
 unavailable or corrupted policy fails clearly. No code from the policy checkout or the PR project is executed.
