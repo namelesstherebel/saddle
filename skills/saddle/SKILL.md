@@ -26,6 +26,19 @@ Normative detail lives in [the standard](../../docs/project-standard.md). Do not
 6. **Git/CI/CD.** Follow [the Git/CI/CD guide](../../docs/git-ci-cd.md) and fill in [the checklist](../../templates/git-ci-checklist.md) as needed: inspect actual repo, index, `origin` and branch state; discover existing test/lint/build commands; record gate evidence with SHA. Inspect before any Git change. Initialize a repo only if it is genuinely new (never nested inside an existing repo), and add or retarget a remote only when the task explicitly authorizes it; never retarget silently. Do not re-ask for authorization the task already gave. Executable CI is a separately assigned pipeline task: do not add workflows, change protections or credentials, or deploy implicitly. Onboarding does not publish. For adopted projects, record the ready-for-review convention (draft while unfinished; on authorized delivery, push without force, verify intended remote PR/head and passing required pre-review checks on that exact SHA, recheck, then mark only that PR ready unless held; never merge or deploy) as in the guide's section 3; it applies once Saddle is actually applied, not retroactively, and grants no new authority.
 7. **Summarize** what changed, the memory mode, Git/CI/CD state (`not configured` / `not run` where true), and what was not verified.
 
+## Optional: CodeRabbit
+
+Only when the task asks for CodeRabbit review coverage. Follow [the CodeRabbit setup section](../../docs/git-ci-cd.md#7-optional-coderabbit-setup); template: [coderabbit.yaml](../../templates/coderabbit.yaml).
+
+- Check the actual App installation selection read-only. OAuth scopes, subscription, or absent bot comments do not prove coverage. On 403, report unknown.
+- Inspect existing `.coderabbit.yaml` and effective UI/global overrides before changes. Inheritance preserves parent settings, arrays merge, and global overrides win.
+- The default branch is included in auto-review target matching; it does not guarantee a review, because installation, enabled/drafts/filters and plan eligibility still apply. Add anchored patterns only for verified, approved additional PR targets.
+- YAML is read from the PR feature head; old PR branches need separately coordinated updates. A copied template is not live shared config.
+- Emit the template only where existing task authorization covers that specific repo; there is no future-repo grant.
+- Never change installation, permissions or billing, post bot commands, or publish during onboarding.
+
+Docs: [auto-review](https://docs.coderabbit.ai/configuration/auto-review), [inheritance](https://docs.coderabbit.ai/configuration/configuration-inheritance), [YAML configuration](https://docs.coderabbit.ai/getting-started/yaml-configuration).
+
 ## Status
 
 Report each item as pass/warn/fail, from what was actually observed:
@@ -36,5 +49,6 @@ Report each item as pass/warn/fail, from what was actually observed:
 - last observed memory mode (`tested` / `instruction-only` / `unavailable`), or "not checked"
 - Git state (branch, upstream, dirty/index), CI gates (command, SHA, result) and CD approval: observed value, `not configured`, or `not run`; docs alone are not enforcement
 - legacy artifacts present (`logs/`, `graphify-out/`), noted only, never flagged for deletion
+- CodeRabbit (only if in scope): coverage, config, targets and exact-head review evidence as observed, or `unknown`
 
 No instruction file and no descriptor → "Not saddled. Run /saddle."
