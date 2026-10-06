@@ -52,6 +52,9 @@ def main(argv):
         return fail("target is not a directory: " + str(target))
     env = dict(os.environ)
     env.pop("SEMGREP_APP_TOKEN", None)
+    # Local scans are always full; inherited baseline settings must not make them baseline-only.
+    env.pop("SEMGREP_BASELINE_COMMIT", None)
+    env.pop("SEMGREP_BASELINE_REF", None)
     env["SEMGREP_SEND_METRICS"] = "off"
     env["SEMGREP_ENABLE_VERSION_CHECK"] = "0"
     found = shutil.which("semgrep", path=env.get("PATH"))

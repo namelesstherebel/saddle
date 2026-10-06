@@ -88,10 +88,12 @@ never changed. In CI the trusted ignore replaces PR ignores and git-ignore is di
 
 ## Run locally (local use only; CI never runs this helper)
 ```
-python3 -m venv .venv-semgrep && .venv-semgrep/bin/pip install semgrep==1.179.0   # needs network
-PATH="$PWD/.venv-semgrep/bin:$PATH" python3 .semgrep/scan.py                       # offline
+python3 -I -m venv .venv-semgrep && .venv-semgrep/bin/python -I -m pip install semgrep==1.179.0   # needs network
+PATH="$PWD/.venv-semgrep/bin:$PATH" python3 -I .semgrep/scan.py                                  # offline
 ```
 Run only on a trusted target directory. `.venv-semgrep` and scanner tooling are excluded from scanning.
 Exit codes: 0 no blocking findings (limited coverage; audit-only findings may exist; never "clean"), 1 blocking
 findings, 2 errors, wrong version, no eligible non-tooling source file scanned, malformed output or abnormal scanner exit. Output has counts and
 `path:line [severity] rule-id` only, no source snippets. `SEMGREP_APP_TOKEN` is removed and metrics are off.
+`SEMGREP_BASELINE_COMMIT` and `SEMGREP_BASELINE_REF` are ignored (removed from the scan environment) by the
+local helper, so local scans are always full scans, never baseline-only.

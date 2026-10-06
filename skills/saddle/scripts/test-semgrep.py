@@ -222,6 +222,32 @@ class ScannerTests(Base):
         self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
         self.assertIn("saddle.python.input-to-shell", r.stdout)
 
+    def test_baseline_env_ignored_by_local_helper(self):
+        src = self.base / "baseline"
+        git_init(src)
+        (src / "inj.py").write_text("import subprocess\ncmd = input()\nsubprocess.run(cmd, shell=True)\n")
+        genv = {k: v for k, v in os.environ.items() if not k.startswith("GIT_")}
+        git = ["git", "-C", str(src), "-c", "user.name=t", "-c", "user.email=t@example.invalid"]
+        subprocess.run(git + ["add", "inj.py"], check=True, capture_output=True, env=genv)
+        subprocess.run(git + ["commit", "-q", "-m", "fixture"], check=True, capture_output=True, env=genv)
+        commit = subprocess.run(git + ["rev-parse", "HEAD"], check=True, capture_output=True,
+                                text=True, env=genv).stdout.strip()
+        saved = {k: os.environ.get(k) for k in ("SEMGREP_BASELINE_COMMIT", "SEMGREP_BASELINE_REF")}
+        try:
+            for var in saved:
+                for k in saved:
+                    os.environ.pop(k, None)
+                os.environ[var] = commit
+                r = run(self.scan, src)
+                self.assertEqual(r.returncode, 1, var + "\n" + r.stdout + r.stderr)
+                self.assertIn("saddle.python.input-to-shell", r.stdout)
+        finally:
+            for k, v in saved.items():
+                if v is None:
+                    os.environ.pop(k, None)
+                else:
+                    os.environ[k] = v
+
     def test_local_venv_excluded(self):
         src = self.base / "venvsrc"
         (src / ".venv-semgrep/lib").mkdir(parents=True)
