@@ -53,22 +53,32 @@ no runners.
 
 ## Test status
 Upstream fixtures currently pass for 64/64 Python and 8/8 JS test groups. Some rules have no upstream
-annotated cases, so not all 79 are individually regression tested.
+annotated cases, so not all 79 are individually regression tested. The reviewed coverage corrections
+passed 30/30 tested regressions; this is a local checkpoint recorded at policy commit
+`f860066c2ef3269bae105c00488694215a9a973a`, not a guarantee for future remote changes.
+
+Coverage notes: the Python sink rule matches both positional and keyword `args=` forms. The local scan
+helper rejects surplus scanner arguments (exit 2).
 
 ## CI trusted policy
 CI fetches `namelesstherebel/saddle` at the fixed public commit
-`638bfb211b12507df17545473a543fd421f6e5e6` into `.semgrep-policy` (same pinned checkout action,
+`f860066c2ef3269bae105c00488694215a9a973a` into `.semgrep-policy` (same pinned checkout action,
 `persist-credentials: false`); the PR head stays checked out in the root. Both rule files load only from the
-policy checkout, after SHA256 verification (`rules.yml` `6fa0633ee12186a1d4a3cdfaf2deceedca7d0c4acf6ad719e0ed1a6aa3037c66`,
-`gitlab-rules.yml` `01e5294fec95488f7b89b4e5810b5cd987c56eb80379ab2a219a5bbde3f87c35`). A missing,
+policy checkout, after SHA256 verification (`rules.yml` `e26005346a43b83bb7f0ba00586f7e10600803bdb120b0c818705d13986469f6`,
+`gitlab-rules.yml` `01e5294fec95488f7b89b4e5810b5cd987c56eb80379ab2a219a5bbde3f87c35`, unchanged; the trusted
+`.semgrepignore` `5c368ad2f54a6f9424f5d80f4f0d66f056ae2711533cdcf34f72259d9a77e982` is verified too). A missing,
 unavailable or corrupted policy fails clearly. No code from the policy checkout or the PR project is executed.
 Pin and digests are intentionally fixed; upgrades need review.
 
 Before scanning, PR `.semgrepignore` files (nested and symlinked too; symlinks, `.git` and the policy checkout
 are not traversed) are neutralized in the ephemeral checkout and the trusted ignore is copied to the root.
-App source is unchanged. `--no-git-ignore` disables git-ignore influence. Fixed excludes:
-`.semgrep`, `.semgrep-policy`, `skills/saddle/templates/semgrep`, `.venv-semgrep`; these cover only scanner
-tooling, templates and dependencies, and tests and app source remain scanned.
+App source is unchanged. CI passes `--no-git-ignore`, so Git-ignore rules cannot hide tracked files.
+Fixed excludes are root-anchored: `/.semgrep`, `/.semgrep-policy`, `/skills/saddle/templates/semgrep`,
+`/.venv-semgrep`; these cover only scanner tooling, templates and dependencies. Nested same-name app
+directories (e.g. `src/.semgrep`) are still scanned, as are tests and app source. Other trusted dependency
+exclusions come from the trusted `.semgrepignore` and are unchanged.
+`--max-target-bytes 0` disables Semgrep's silent file-size filter, so large files are scanned; timeouts and
+scanner errors still fail the run (exit 2).
 
 Boundary: CI is not tamperproof against a PR that edits the workflow itself; human review remains necessary
 unless branch protections are separately authorized. No new security settings or `pull_request_target`.
@@ -92,6 +102,8 @@ python3 -I -m venv .venv-semgrep && .venv-semgrep/bin/python -I -m pip install s
 PATH="$PWD/.venv-semgrep/bin:$PATH" python3 -I .semgrep/scan.py                                  # offline
 ```
 Run only on a trusted target directory. `.venv-semgrep` and scanner tooling are excluded from scanning.
+Local Git-ignore handling is explicit: trusted local runs use the local ignore files, but tracked files are
+not hidden by Git-ignore; CI disables Git-ignore entirely (`--no-git-ignore`).
 Exit codes: 0 no blocking findings (limited coverage; audit-only findings may exist; never "clean"), 1 blocking
 findings, 2 errors, wrong version, no eligible non-tooling source file scanned, malformed output or abnormal scanner exit. Output has counts and
 `path:line [severity] rule-id` only, no source snippets. `SEMGREP_APP_TOKEN` is removed and metrics are off.

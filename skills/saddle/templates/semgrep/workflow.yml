@@ -23,7 +23,7 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
-      - name: Log and assert checked-out commit
+      - name: Log and assert checked-out commit and clear policy directory
         run: |
           set -eu
           actual="$(git rev-parse HEAD)"
@@ -34,22 +34,24 @@ jobs:
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: namelesstherebel/saddle
-          ref: 638bfb211b12507df17545473a543fd421f6e5e6
+          ref: f860066c2ef3269bae105c00488694215a9a973a
           path: .semgrep-policy
           persist-credentials: false
       - name: Verify trusted policy
         run: |
           set -eu
           P=.semgrep-policy
-          test "$(git -C "$P" rev-parse HEAD)" = "638bfb211b12507df17545473a543fd421f6e5e6" \
+          test "$(git -C "$P" rev-parse HEAD)" = "f860066c2ef3269bae105c00488694215a9a973a" \
             || { echo "policy checkout commit mismatch"; exit 2; }
           for f in .semgrep/rules.yml .semgrep/gitlab-rules.yml .semgrepignore; do
             test -f "$P/$f" && test ! -L "$P/$f" || { echo "missing trusted policy file: $f"; exit 2; }
           done
-          echo "6fa0633ee12186a1d4a3cdfaf2deceedca7d0c4acf6ad719e0ed1a6aa3037c66  $P/.semgrep/rules.yml" | sha256sum -c - \
+          echo "e26005346a43b83bb7f0ba00586f7e10600803bdb120b0c818705d13986469f6  $P/.semgrep/rules.yml" | sha256sum -c - \
             || { echo "rules.yml digest mismatch"; exit 2; }
           echo "01e5294fec95488f7b89b4e5810b5cd987c56eb80379ab2a219a5bbde3f87c35  $P/.semgrep/gitlab-rules.yml" | sha256sum -c - \
             || { echo "gitlab-rules.yml digest mismatch"; exit 2; }
+          echo "5c368ad2f54a6f9424f5d80f4f0d66f056ae2711533cdcf34f72259d9a77e982  $P/.semgrepignore" | sha256sum -c - \
+            || { echo ".semgrepignore digest mismatch"; exit 2; }
       - name: Install pinned Semgrep CE (engine only; dependencies are not locked)
         working-directory: ${{ runner.temp }}
         run: |
@@ -73,8 +75,9 @@ jobs:
           set +e
           "$SG" scan --oss-only --metrics=off --no-trace --disable-version-check \
             --error --strict --no-rewrite-rule-ids --no-git-ignore --disable-nosem \
-            --exclude .semgrep --exclude .semgrep-policy \
-            --exclude skills/saddle/templates/semgrep --exclude .venv-semgrep \
+            --max-target-bytes 0 \
+            --exclude /.semgrep --exclude /.semgrep-policy \
+            --exclude /skills/saddle/templates/semgrep --exclude /.venv-semgrep \
             --config "$P/.semgrep/rules.yml" --config "$P/.semgrep/gitlab-rules.yml" \
             --json . > "$RUNNER_TEMP/semgrep.json"
           rc=$?
