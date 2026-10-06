@@ -128,7 +128,10 @@ class InstallerTests(Base):
         self.assertIn("\n/.semgrep/\n", text)
         self.assertNotIn("\n.semgrep/\n", text)
         self.assertNotIn("\n.venv-semgrep/\n", text)
-        self.assertIn("\nnode_modules/\n", text)
+        self.assertIn("\n/node_modules/\n", text)
+        for d in ("node_modules", "vendor", ".venv", "build", "dist"):
+            self.assertIn("\n/%s/\n" % d, text)
+            self.assertNotIn("\n%s/\n" % d, text)
 
     def test_github_regular_file_preflight(self):
         (self.repo / ".github").write_text("not a dir\n")
@@ -305,6 +308,32 @@ class ScannerTests(Base):
             self.assertIn("app/" + tool + "/inj.py", r.stdout)
             self.assertIn("saddle.python.input-to-shell", r.stdout)
             self.assertNotIn("rootinj.py", r.stdout)
+
+    def test_dependency_ignores_anchored_to_root(self):
+        # Uses the actual installed .semgrepignore (setUp ran the installer into self.repo).
+        bad_py = "import subprocess\ncmd = input()\nsubprocess.run(cmd, shell=True)\n"
+        bad_js = "eval(process.argv[2]);\n"
+        src = self.base / "depanch"
+        src.mkdir()
+        shutil_copy = (self.repo / ".semgrepignore").read_bytes()
+        (src / ".semgrepignore").write_bytes(shutil_copy)
+        for d in ("node_modules", "vendor", ".venv", "build", "dist"):
+            (src / d).mkdir()
+            (src / d / "rootinj.py").write_text(bad_py)
+        r = run(self.scan, src)  # only root dependency/build output: excluded, nothing eligible
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertNotIn("rootinj.py", r.stdout)
+        (src / "src/vendor").mkdir(parents=True)
+        (src / "src/vendor/payload.py").write_text(bad_py)
+        (src / "app/build").mkdir(parents=True)
+        (src / "app/build/payload.js").write_text(bad_js)
+        r = run(self.scan, src)  # nested application source must be scanned
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("src/vendor/payload.py", r.stdout)
+        self.assertIn("app/build/payload.js", r.stdout)
+        self.assertIn("saddle.python.input-to-shell", r.stdout)
+        self.assertIn("saddle.javascript.eval", r.stdout)
+        self.assertNotIn("rootinj.py", r.stdout)
 
     def test_syntax_error_returns_2(self):
         # Semgrep prefilters files with no rule-relevant tokens, so a bare 'def (:' is never parsed.
