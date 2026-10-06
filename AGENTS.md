@@ -9,6 +9,7 @@ Canonical instructions for this repo. Saddle is a lean, coding-tool-agnostic pro
 ## Rules
 
 - Scope: documentation and templates only. No identity CLI, client, hooks, auth, or transport; the companion owns those.
+- Narrow exception, explicitly user-authorized: the optional Semgrep installer, its regression tests and its CI workflow (Saddle and adopters) may be executable. Nothing else in scope changes.
 - `.hindsight/project.json` has exactly `schema_version`, `bank_id`, `canonical_remote`. Never re-derive an existing `bank_id`.
 - Preserve existing logs, graphs, and OpenViking memory. Never silently delete or migrate; repo-local logs are historical evidence.
 - No absolute machine paths in reusable docs. Relative links. Placeholders in templates.

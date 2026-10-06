@@ -4,3 +4,5 @@ vendor/
 .venv/
 build/
 dist/
+.venv-semgrep/
+.semgrep/

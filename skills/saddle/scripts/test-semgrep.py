@@ -114,6 +114,19 @@ class InstallerTests(Base):
         self.assertEqual(r.returncode, 2)
         self.assertFalse((real / "inner" / ".semgrep").exists())
 
+    def test_unknown_option_usage_error(self):
+        for opt in ("--bogus", "-x"):
+            r = run(WIRE, opt, self.repo)
+            self.assertEqual(r.returncode, 2, r.stderr)
+            self.assertIn("usage", r.stderr)
+        self.assertFalse((self.repo / ".semgrep").exists())
+
+    def test_generated_ignore_has_tooling(self):
+        self.assertEqual(run(WIRE, self.repo).returncode, 0)
+        text = (self.repo / ".semgrepignore").read_text()
+        self.assertIn(".venv-semgrep/\n", text)
+        self.assertIn(".semgrep/\n", text)
+
     def test_github_regular_file_preflight(self):
         (self.repo / ".github").write_text("not a dir\n")
         for args in ((self.repo,), ("--check", self.repo)):
@@ -197,6 +210,29 @@ class ScannerTests(Base):
         self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
         r = self.scan_with("notes.txt", "nothing to scan\n")
         self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+
+    def test_installed_only_repo_errors(self):
+        r = run(self.scan, self.repo)
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertNotIn("clean", r.stdout)
+
+    def test_nosemgrep_cannot_suppress_input_to_shell(self):
+        r = self.scan_with("inj.py", "import subprocess\ncmd = input()\n"
+                                     "subprocess.run(cmd, shell=True)  # nosemgrep\n")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("saddle.python.input-to-shell", r.stdout)
+
+    def test_local_venv_excluded(self):
+        src = self.base / "venvsrc"
+        (src / ".venv-semgrep/lib").mkdir(parents=True)
+        (src / ".venv-semgrep/lib/inj.py").write_text(
+            "import subprocess\ncmd = input()\nsubprocess.run(cmd, shell=True)\n")
+        r = run(self.scan, src)
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)  # only tooling files: nothing eligible
+        (src / "ok.py").write_text("x = 1\n")
+        r = run(self.scan, src)
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertNotIn("input-to-shell", r.stdout)
 
     def test_syntax_error_returns_2(self):
         # Semgrep prefilters files with no rule-relevant tokens, so a bare 'def (:' is never parsed.

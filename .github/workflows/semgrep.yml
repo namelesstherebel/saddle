@@ -29,6 +29,27 @@ jobs:
           actual="$(git rev-parse HEAD)"
           echo "HEAD=$actual"
           test "$actual" = "$EXPECTED_SHA"
+          rm -rf -- .semgrep-policy
+      - name: Fetch pinned trusted Semgrep policy (not executed)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: namelesstherebel/saddle
+          ref: 638bfb211b12507df17545473a543fd421f6e5e6
+          path: .semgrep-policy
+          persist-credentials: false
+      - name: Verify trusted policy
+        run: |
+          set -eu
+          P=.semgrep-policy
+          test "$(git -C "$P" rev-parse HEAD)" = "638bfb211b12507df17545473a543fd421f6e5e6" \
+            || { echo "policy checkout commit mismatch"; exit 2; }
+          for f in .semgrep/rules.yml .semgrep/gitlab-rules.yml .semgrepignore; do
+            test -f "$P/$f" && test ! -L "$P/$f" || { echo "missing trusted policy file: $f"; exit 2; }
+          done
+          echo "6fa0633ee12186a1d4a3cdfaf2deceedca7d0c4acf6ad719e0ed1a6aa3037c66  $P/.semgrep/rules.yml" | sha256sum -c - \
+            || { echo "rules.yml digest mismatch"; exit 2; }
+          echo "01e5294fec95488f7b89b4e5810b5cd987c56eb80379ab2a219a5bbde3f87c35  $P/.semgrep/gitlab-rules.yml" | sha256sum -c - \
+            || { echo "gitlab-rules.yml digest mismatch"; exit 2; }
       - name: Install pinned Semgrep CE (engine only; dependencies are not locked)
         working-directory: ${{ runner.temp }}
         run: |
@@ -41,12 +62,20 @@ jobs:
           set -eu
           SG="$RUNNER_TEMP/venv/bin/semgrep"
           test "$("$SG" --version | tail -n1)" = "1.179.0"
+          P=.semgrep-policy
+          test -f "$P/.semgrep/rules.yml"
+          test -f "$P/.semgrep/gitlab-rules.yml"
+          test -f "$P/.semgrepignore"
+          # Neutralize PR-controlled ignore files (nested/symlinks; no traversal of symlinks, .git, policy).
+          find . \( -path ./.git -o -path ./.semgrep-policy \) -prune -o -name .semgrepignore \
+            \( -type f -o -type l \) -exec rm -f -- {} +
+          cp -- "$P/.semgrepignore" ./.semgrepignore
           set +e
-          test -f .semgrep/rules.yml
-          test -f .semgrep/gitlab-rules.yml
           "$SG" scan --oss-only --metrics=off --no-trace --disable-version-check \
-            --error --strict --no-rewrite-rule-ids \
-            --config .semgrep/rules.yml --config .semgrep/gitlab-rules.yml \
+            --error --strict --no-rewrite-rule-ids --no-git-ignore --disable-nosem \
+            --exclude .semgrep --exclude .semgrep-policy \
+            --exclude skills/saddle/templates/semgrep --exclude .venv-semgrep \
+            --config "$P/.semgrep/rules.yml" --config "$P/.semgrep/gitlab-rules.yml" \
             --json . > "$RUNNER_TEMP/semgrep.json"
           rc=$?
           set -e

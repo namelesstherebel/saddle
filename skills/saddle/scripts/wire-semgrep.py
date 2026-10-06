@@ -23,7 +23,7 @@ FILES = [
     ("workflow.yml", ".github/workflows/semgrep.yml"),
 ]
 IGNORE = (b"# Saddle Semgrep: dependency/build output only. Tests are scanned.\n"
-          b"node_modules/\nvendor/\n.venv/\nbuild/\ndist/\n")
+          b"node_modules/\nvendor/\n.venv/\nbuild/\ndist/\n.venv-semgrep/\n.semgrep/\n")
 
 
 def unresolved_root(arg):
@@ -83,7 +83,7 @@ def main(argv):
     args = argv[1:]
     check = "--check" in args
     args = [a for a in args if a != "--check"]
-    if len(args) > 1:
+    if len(args) > 1 or any(a.startswith("-") for a in args):
         print("usage: wire-semgrep.py [--check] [repo]", file=sys.stderr)
         return 2
     root, err = unresolved_root(args[0] if args else ".")

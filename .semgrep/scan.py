@@ -22,6 +22,22 @@ CONFIGS = [RULES, GITLAB]
 AUDIT_ONLY = {"python_exec_rule-subprocess-popen-shell-true"}
 
 
+# Scanner tooling/templates/dependencies only; tests and app source stay scanned.
+TOOL_EXCLUDES = [".semgrep", ".semgrep-policy", "skills/saddle/templates/semgrep", ".venv-semgrep"]
+TOOL_SEQS = [tuple(e.split("/")) for e in TOOL_EXCLUDES]
+
+
+def is_tool_path(p, target):
+    """True if a scanned path (absolute or relative to target) lies in scanner tooling."""
+    q = Path(p)
+    parts = (q if q.is_absolute() else target / q).parts
+    for seq in TOOL_SEQS:
+        n = len(seq)
+        if any(parts[i:i + n] == seq for i in range(len(parts) - n + 1)):
+            return True
+    return False
+
+
 def fail(msg):
     print("semgrep scan: " + msg, file=sys.stderr)
     return 2
@@ -50,7 +66,9 @@ def main(argv):
     if v.returncode != 0 or got != PINNED:
         return fail("semgrep %s required, found %r" % (PINNED, got))
     cmd = [semgrep, "scan", "--oss-only", "--metrics=off", "--no-trace", "--disable-version-check",
-           "--error", "--strict", "--no-rewrite-rule-ids"]
+           "--error", "--strict", "--no-rewrite-rule-ids", "--disable-nosem"]
+    for ex in TOOL_EXCLUDES:
+        cmd += ["--exclude", ex]
     for cfg in CONFIGS:
         cmd += ["--config", str(cfg)]
     cmd += ["--json", str(target)]
@@ -69,10 +87,11 @@ def main(argv):
         return fail("malformed scanner output (%s); exit status %d" % (e, p.returncode))
     def blocking(r):
         return r.get("extra", {}).get("severity") == "ERROR" and r.get("check_id") not in AUDIT_ONLY
+    eligible = [s for s in scanned if not is_tool_path(s, target)]
     nblock = sum(1 for r in results if blocking(r))
     naudit = len(results) - nblock
     print("scanned files: %d, findings: %d, blocking: %d, audit: %d, errors: %d"
-          % (len(scanned), len(results), nblock, naudit, len(errors)))
+          % (len(eligible), len(results), nblock, naudit, len(errors)))
     for r in results:
         start = r.get("start", {}).get("line", "?")
         sev = r.get("extra", {}).get("severity", "?")
@@ -84,8 +103,8 @@ def main(argv):
         return 2
     if p.returncode not in (0, 1):
         return fail("scanner exited %d; unverifiable" % p.returncode)
-    if not scanned:
-        return fail("zero files scanned; refusing to report clean")
+    if not eligible:
+        return fail("no eligible non-tooling files scanned; refusing to report a result")
     if nblock:
         return 1
     if results:
@@ -93,7 +112,7 @@ def main(argv):
         return 0
     if p.returncode != 0:
         return fail("scanner exited %d without findings" % p.returncode)
-    print("clean (limited starter rules; not proof of absence of issues)")
+    print("no blocking findings; coverage limited (starter rules; not proof of absence of issues)")
     return 0
 
 
