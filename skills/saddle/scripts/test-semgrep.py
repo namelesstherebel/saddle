@@ -124,8 +124,11 @@ class InstallerTests(Base):
     def test_generated_ignore_has_tooling(self):
         self.assertEqual(run(WIRE, self.repo).returncode, 0)
         text = (self.repo / ".semgrepignore").read_text()
-        self.assertIn(".venv-semgrep/\n", text)
-        self.assertIn(".semgrep/\n", text)
+        self.assertIn("\n/.venv-semgrep/\n", text)
+        self.assertIn("\n/.semgrep/\n", text)
+        self.assertNotIn("\n.semgrep/\n", text)
+        self.assertNotIn("\n.venv-semgrep/\n", text)
+        self.assertIn("\nnode_modules/\n", text)
 
     def test_github_regular_file_preflight(self):
         (self.repo / ".github").write_text("not a dir\n")
@@ -259,6 +262,49 @@ class ScannerTests(Base):
         r = run(self.scan, src)
         self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
         self.assertNotIn("input-to-shell", r.stdout)
+
+    def test_multiple_target_args_usage_error(self):
+        src = self.base / "multi"
+        src.mkdir()
+        (src / "inj.py").write_text("import subprocess\ncmd = input()\nsubprocess.run(cmd, shell=True)\n")
+        r = run(self.scan, src, src)
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
+        self.assertIn("usage", r.stderr)
+        self.assertNotIn("scanned files", r.stdout)
+
+    def test_keyword_args_shell_true_blocks(self):
+        r = self.scan_with("kw.py", "import subprocess\ncmd = input()\n"
+                                    "subprocess.run(args=cmd, shell=True)\n")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("saddle.python.input-to-shell", r.stdout)
+        r = self.scan_with("kwsafe.py", "import subprocess\ncmd = input()\n"
+                                        "subprocess.run(args=[cmd])\n")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+
+    def test_large_source_still_scanned(self):
+        pad = "# input-to-shell padding\n" * 50000  # > 1 MiB, above Semgrep's default size cap
+        body = pad + "import subprocess\ncmd = input()\nsubprocess.run(cmd, shell=True)\n"
+        self.assertGreater(len(body.encode()), 1024 * 1024)
+        r = self.scan_with("big.py", body)
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("saddle.python.input-to-shell", r.stdout)
+
+    def test_tooling_exclusions_anchored_to_root(self):
+        bad = "import subprocess\ncmd = input()\nsubprocess.run(cmd, shell=True)\n"
+        for tool in (".semgrep", ".venv-semgrep"):
+            src = self.base / ("anch" + tool.strip("."))
+            (src / tool).mkdir(parents=True)
+            (src / tool / "rootinj.py").write_text(bad)
+            r = run(self.scan, src)  # only root tooling: excluded, nothing eligible
+            self.assertEqual(r.returncode, 2, tool + r.stdout + r.stderr)
+            self.assertNotIn("rootinj.py", r.stdout)
+            (src / "app" / tool).mkdir(parents=True)
+            (src / "app" / tool / "inj.py").write_text(bad)
+            r = run(self.scan, src)  # nested copy is application code and must be scanned
+            self.assertEqual(r.returncode, 1, tool + r.stdout + r.stderr)
+            self.assertIn("app/" + tool + "/inj.py", r.stdout)
+            self.assertIn("saddle.python.input-to-shell", r.stdout)
+            self.assertNotIn("rootinj.py", r.stdout)
 
     def test_syntax_error_returns_2(self):
         # Semgrep prefilters files with no rule-relevant tokens, so a bare 'def (:' is never parsed.

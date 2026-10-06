@@ -23,19 +23,21 @@ AUDIT_ONLY = {"python_exec_rule-subprocess-popen-shell-true"}
 
 
 # Scanner tooling/templates/dependencies only; tests and app source stay scanned.
-TOOL_EXCLUDES = [".semgrep", ".semgrep-policy", "skills/saddle/templates/semgrep", ".venv-semgrep"]
-TOOL_SEQS = [tuple(e.split("/")) for e in TOOL_EXCLUDES]
+# Anchored to the scan root: nested app/.semgrep or app/.venv-semgrep are application paths.
+TOOL_EXCLUDES = ["/.semgrep", "/.semgrep-policy", "/skills/saddle/templates/semgrep", "/.venv-semgrep"]
+TOOL_SEQS = [tuple(e.strip("/").split("/")) for e in TOOL_EXCLUDES]
 
 
 def is_tool_path(p, target):
-    """True if a scanned path (absolute or relative to target) lies in scanner tooling."""
+    """True if a scanned path (absolute or relative to target) lies in scanner tooling at the target root."""
     q = Path(p)
-    parts = (q if q.is_absolute() else target / q).parts
-    for seq in TOOL_SEQS:
-        n = len(seq)
-        if any(parts[i:i + n] == seq for i in range(len(parts) - n + 1)):
-            return True
-    return False
+    if q.is_absolute():
+        try:
+            q = q.relative_to(target)
+        except ValueError:
+            return False
+    parts = q.parts
+    return any(parts[:len(seq)] == seq for seq in TOOL_SEQS)
 
 
 def fail(msg):
@@ -44,6 +46,9 @@ def fail(msg):
 
 
 def main(argv):
+    if len(argv) > 2:
+        print("usage: scan.py [target-dir]", file=sys.stderr)
+        return 2
     target = Path(argv[1]).resolve() if len(argv) > 1 else HERE.parent
     for cfg in CONFIGS:
         if not cfg.is_file():
@@ -69,7 +74,8 @@ def main(argv):
     if v.returncode != 0 or got != PINNED:
         return fail("semgrep %s required, found %r" % (PINNED, got))
     cmd = [semgrep, "scan", "--oss-only", "--metrics=off", "--no-trace", "--disable-version-check",
-           "--error", "--strict", "--no-rewrite-rule-ids", "--disable-nosem"]
+           "--error", "--strict", "--no-rewrite-rule-ids", "--disable-nosem",
+           "--max-target-bytes", "0"]
     for ex in TOOL_EXCLUDES:
         cmd += ["--exclude", ex]
     for cfg in CONFIGS:

@@ -23,7 +23,7 @@ FILES = [
     ("workflow.yml", ".github/workflows/semgrep.yml"),
 ]
 IGNORE = (b"# Saddle Semgrep: dependency/build output only. Tests are scanned.\n"
-          b"node_modules/\nvendor/\n.venv/\nbuild/\ndist/\n.venv-semgrep/\n.semgrep/\n")
+          b"node_modules/\nvendor/\n.venv/\nbuild/\ndist/\n/.venv-semgrep/\n/.semgrep/\n")
 
 
 def unresolved_root(arg):

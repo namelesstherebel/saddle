@@ -20,6 +20,9 @@ rules:
       - patterns:
           - pattern: subprocess.$FUNC($CMD, ..., shell=True, ...)
           - focus-metavariable: $CMD
+      - patterns:
+          - pattern: subprocess.$FUNC(..., args=$CMD, ..., shell=True, ...)
+          - focus-metavariable: $CMD
       - pattern: os.system(...)
     metadata:
       license: MIT
