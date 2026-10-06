@@ -1,0 +1,87 @@
+rules:
+  - id: saddle.python.subprocess-shell-true
+    languages: [python]
+    severity: WARNING
+    message: subprocess call with shell=True (audit); pass an argument list without a shell instead.
+    pattern: subprocess.$FUNC(..., shell=True, ...)
+    metadata:
+      license: MIT
+      confidence: HIGH
+      category: security
+  - id: saddle.python.input-to-shell
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: Input from input() or sys.argv reaches a shell command; pass an argument list without a shell instead.
+    pattern-sources:
+      - pattern: input(...)
+      - pattern: sys.argv[...]
+    pattern-sinks:
+      # Shell-enabling forms (as upstream audit rule): True, nonzero int (incl. negative), nonempty str/list/dict.
+      - patterns:
+          - pattern-either:
+              - pattern: 'subprocess.$FUNC($CMD, ..., shell=True, ...)'
+              - pattern: 'subprocess.$FUNC($CMD, ..., shell=[$V, ...], ...)'
+              - pattern: 'subprocess.$FUNC($CMD, ..., shell={$K: $V, ...}, ...)'
+              - patterns:
+                  - pattern: 'subprocess.$FUNC($CMD, ..., shell=$INT, ...)'
+                  - metavariable-regex:
+                      metavariable: $INT
+                      regex: '^-?[0-9]*[1-9][0-9]*$'
+              - patterns:
+                  - pattern: 'subprocess.$FUNC($CMD, ..., shell="$STR", ...)'
+                  - metavariable-regex:
+                      metavariable: $STR
+                      regex: '.+'
+          - focus-metavariable: $CMD
+      - patterns:
+          - pattern-either:
+              - pattern: 'subprocess.$FUNC(..., args=$CMD, ..., shell=True, ...)'
+              - pattern: 'subprocess.$FUNC(..., args=$CMD, ..., shell=[$V, ...], ...)'
+              - pattern: 'subprocess.$FUNC(..., args=$CMD, ..., shell={$K: $V, ...}, ...)'
+              - patterns:
+                  - pattern: 'subprocess.$FUNC(..., args=$CMD, ..., shell=$INT, ...)'
+                  - metavariable-regex:
+                      metavariable: $INT
+                      regex: '^-?[0-9]*[1-9][0-9]*$'
+              - patterns:
+                  - pattern: 'subprocess.$FUNC(..., args=$CMD, ..., shell="$STR", ...)'
+                  - metavariable-regex:
+                      metavariable: $STR
+                      regex: '.+'
+          - focus-metavariable: $CMD
+      - pattern: os.system(...)
+    metadata:
+      license: MIT
+      confidence: MEDIUM
+      category: security
+  - id: saddle.javascript.eval
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: eval() executes dynamic code; remove it or use a safe parser.
+    pattern: eval(...)
+    metadata:
+      license: MIT
+      confidence: HIGH
+      category: security
+  - id: saddle.javascript.child-process-exec
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: child_process exec runs through a shell; prefer execFile or spawn with an argument array. Only explicit child_process.exec and require("child_process").exec calls are reported.
+    pattern-either:
+      - pattern: child_process.exec(...)
+      - pattern: require("child_process").exec(...)
+      - pattern: require('child_process').exec(...)
+    metadata:
+      license: MIT
+      confidence: MEDIUM
+      category: security
+  - id: saddle.php.eval
+    languages: [php]
+    severity: ERROR
+    message: eval() executes dynamic code; remove it.
+    pattern: eval(...)
+    metadata:
+      license: MIT
+      confidence: HIGH
+      category: security

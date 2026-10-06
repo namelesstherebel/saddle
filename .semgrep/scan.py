@@ -1,0 +1,129 @@
+#!/usr/bin/env python3
+"""Repo-local Semgrep CE scan. Exit 0 no blocking findings, 1 blocking (ERROR) findings, 2 errors/unverifiable.
+WARNING/INFO findings are audit-visible and do not block (output says audit findings remain).
+
+Usage: python3 -I .semgrep/scan.py [target-dir]   (default: repo root). Local use only; CI runs inline.
+Uses only the fixed local rules file beside this script. This script writes no report to disk
+(Semgrep itself may write local settings/log files). Errors take priority over findings.
+"""
+import json
+import os
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+
+PINNED = "1.179.0"
+HERE = Path(__file__).resolve().parent
+RULES = HERE / "rules.yml"
+GITLAB = HERE / "gitlab-rules.yml"
+CONFIGS = [RULES, GITLAB]
+# ERROR-severity IDs treated as audit-only (helper callers may pass constants; CE cannot see that).
+AUDIT_ONLY = {"python_exec_rule-subprocess-popen-shell-true"}
+
+
+# Scanner tooling/templates/dependencies only; tests and app source stay scanned.
+# Anchored to the scan root: nested app/.semgrep or app/.venv-semgrep are application paths.
+TOOL_EXCLUDES = ["/.semgrep", "/.semgrep-policy", "/skills/saddle/templates/semgrep", "/.venv-semgrep"]
+TOOL_SEQS = [tuple(e.strip("/").split("/")) for e in TOOL_EXCLUDES]
+
+
+def is_tool_path(p, target):
+    """True if a scanned path (absolute or relative to target) lies in scanner tooling at the target root."""
+    q = Path(p)
+    if q.is_absolute():
+        try:
+            q = q.relative_to(target)
+        except ValueError:
+            return False
+    parts = q.parts
+    return any(parts[:len(seq)] == seq for seq in TOOL_SEQS)
+
+
+def fail(msg):
+    print("semgrep scan: " + msg, file=sys.stderr)
+    return 2
+
+
+def main(argv):
+    if len(argv) > 2:
+        print("usage: scan.py [target-dir]", file=sys.stderr)
+        return 2
+    target = Path(argv[1]).resolve() if len(argv) > 1 else HERE.parent
+    for cfg in CONFIGS:
+        if not cfg.is_file():
+            return fail("missing rules file " + str(cfg))
+    if not target.is_dir():
+        return fail("target is not a directory: " + str(target))
+    env = dict(os.environ)
+    env.pop("SEMGREP_APP_TOKEN", None)
+    # Local scans are always full; inherited baseline settings must not make them baseline-only.
+    env.pop("SEMGREP_BASELINE_COMMIT", None)
+    env.pop("SEMGREP_BASELINE_REF", None)
+    env["SEMGREP_SEND_METRICS"] = "off"
+    env["SEMGREP_ENABLE_VERSION_CHECK"] = "0"
+    found = shutil.which("semgrep", path=env.get("PATH"))
+    if not found:
+        return fail("semgrep not found on PATH")
+    semgrep = os.path.abspath(found)  # absolute installed binary, used for every call
+    try:
+        v = subprocess.run([semgrep, "--version"], capture_output=True, text=True, env=env, timeout=120)
+    except (OSError, subprocess.SubprocessError) as e:
+        return fail("cannot run semgrep: %s" % e)
+    got = v.stdout.strip().splitlines()[-1].strip() if v.stdout.strip() else ""
+    if v.returncode != 0 or got != PINNED:
+        return fail("semgrep %s required, found %r" % (PINNED, got))
+    cmd = [semgrep, "scan", "--oss-only", "--metrics=off", "--no-trace", "--disable-version-check",
+           "--error", "--strict", "--no-rewrite-rule-ids", "--disable-nosem",
+           "--max-target-bytes", "0", "--no-exclude-binary-files"]
+    for ex in TOOL_EXCLUDES:
+        cmd += ["--exclude", ex]
+    for cfg in CONFIGS:
+        cmd += ["--config", str(cfg)]
+    cmd += ["--json", str(target)]
+    try:
+        p = subprocess.run(cmd, capture_output=True, text=True, env=env, cwd=str(target), timeout=1800)
+    except (OSError, subprocess.SubprocessError) as e:
+        return fail("scan failed to run: %s" % e)
+    try:
+        data = json.loads(p.stdout)
+        results = data["results"]
+        errors = data["errors"]
+        scanned = data["paths"]["scanned"]
+        if not all(isinstance(x, list) for x in (results, errors, scanned)):
+            raise TypeError("unexpected shape")
+    except (ValueError, KeyError, TypeError) as e:
+        return fail("malformed scanner output (%s); exit status %d" % (e, p.returncode))
+    def blocking(r):
+        return r.get("extra", {}).get("severity") == "ERROR" and r.get("check_id") not in AUDIT_ONLY
+    eligible = [s for s in scanned if not is_tool_path(s, target)]
+    nblock = sum(1 for r in results if blocking(r))
+    naudit = len(results) - nblock
+    print("scanned files: %d, findings: %d, blocking: %d, audit: %d, errors: %d"
+          % (len(eligible), len(results), nblock, naudit, len(errors)))
+    for r in results:
+        start = r.get("start", {}).get("line", "?")
+        sev = r.get("extra", {}).get("severity", "?")
+        print("%s:%s: [%s] [%s] %s" % (r.get("path", "?"), start, sev,
+                                       "BLOCKING" if blocking(r) else "AUDIT", r.get("check_id", "?")))
+    for e in errors:
+        print("error: %s %s" % (e.get("type", "?"), e.get("path", "")), file=sys.stderr)
+    if errors:
+        return 2
+    if p.returncode not in (0, 1):
+        return fail("scanner exited %d; unverifiable" % p.returncode)
+    if not eligible:
+        return fail("no eligible non-tooling files scanned; refusing to report a result")
+    if nblock:
+        return 1
+    if results:
+        print("no blocking findings; audit findings remain")
+        return 0
+    if p.returncode != 0:
+        return fail("scanner exited %d without findings" % p.returncode)
+    print("no blocking findings; coverage limited (starter rules; not proof of absence of issues)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))

@@ -1,0 +1,126 @@
+name: semgrep
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  push:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: semgrep-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+jobs:
+  scan:
+    name: semgrep-${{ matrix.target }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJSON(github.event_name == 'pull_request' && '["head","merge"]' || '["head"]') }}
+    env:
+      EXPECTED_SHA: ${{ matrix.target == 'merge' && github.sha || github.event.pull_request.head.sha || github.sha }}
+      SEMGREP_APP_TOKEN: ""
+      SEMGREP_SEND_METRICS: "off"
+      SEMGREP_ENABLE_VERSION_CHECK: "0"
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          ref: ${{ matrix.target == 'merge' && github.sha || github.event.pull_request.head.sha || github.sha }}
+          persist-credentials: false
+      - name: Log and assert checked-out commit and clear policy directory
+        run: |
+          set -eu
+          actual="$(git rev-parse HEAD)"
+          echo "HEAD=$actual"
+          test "$actual" = "$EXPECTED_SHA"
+          rm -rf -- .semgrep-policy
+      - name: Fetch pinned trusted Semgrep policy (not executed)
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          repository: namelesstherebel/saddle
+          ref: 8744cbf8de7f1a6466c284718ece929f6aa21711
+          path: .semgrep-policy
+          persist-credentials: false
+      - name: Verify trusted policy
+        run: |
+          set -eu
+          P=.semgrep-policy
+          test "$(git -C "$P" rev-parse HEAD)" = "8744cbf8de7f1a6466c284718ece929f6aa21711" \
+            || { echo "policy checkout commit mismatch"; exit 2; }
+          for f in .semgrep/rules.yml .semgrep/gitlab-rules.yml .semgrepignore; do
+            test -f "$P/$f" && test ! -L "$P/$f" || { echo "missing trusted policy file: $f"; exit 2; }
+          done
+          echo "181929cab5bd0026f1a9b70464593c4540cfb342482bac8a3e77415db479eb4e  $P/.semgrep/rules.yml" | sha256sum -c - \
+            || { echo "rules.yml digest mismatch"; exit 2; }
+          echo "01e5294fec95488f7b89b4e5810b5cd987c56eb80379ab2a219a5bbde3f87c35  $P/.semgrep/gitlab-rules.yml" | sha256sum -c - \
+            || { echo "gitlab-rules.yml digest mismatch"; exit 2; }
+          echo "9ed37ee9e32fc2874f5bd3c9c87e051f03dc6fede35543da9716a6e8d83b6311  $P/.semgrepignore" | sha256sum -c - \
+            || { echo ".semgrepignore digest mismatch"; exit 2; }
+      - name: Install pinned Semgrep CE (engine only; dependencies are not locked)
+        working-directory: ${{ runner.temp }}
+        run: |
+          set -eu
+          python3 --version
+          python3 -I -m venv "$RUNNER_TEMP/venv"
+          "$RUNNER_TEMP/venv/bin/python" -I -m pip install --disable-pip-version-check semgrep==1.179.0
+      - name: Scan (inline, full tree)
+        run: |
+          set -eu
+          SG="$RUNNER_TEMP/venv/bin/semgrep"
+          test "$("$SG" --version | tail -n1)" = "1.179.0"
+          P=.semgrep-policy
+          test -f "$P/.semgrep/rules.yml"
+          test -f "$P/.semgrep/gitlab-rules.yml"
+          test -f "$P/.semgrepignore"
+          # Neutralize PR-controlled ignore files (nested/symlinks; no traversal of symlinks, .git, policy).
+          find . \( -path ./.git -o -path ./.semgrep-policy \) -prune -o -name .semgrepignore \
+            \( -type f -o -type l \) -exec rm -f -- {} +
+          cp -- "$P/.semgrepignore" ./.semgrepignore
+          set +e
+          "$SG" scan --oss-only --metrics=off --no-trace --disable-version-check \
+            --error --strict --no-rewrite-rule-ids --no-git-ignore --disable-nosem \
+            --max-target-bytes 0 --no-exclude-binary-files \
+            --exclude /.semgrep --exclude /.semgrep-policy \
+            --exclude /skills/saddle/templates/semgrep --exclude /.venv-semgrep \
+            --config "$P/.semgrep/rules.yml" --config "$P/.semgrep/gitlab-rules.yml" \
+            --json . > "$RUNNER_TEMP/semgrep.json"
+          rc=$?
+          set -e
+          cat > "$RUNNER_TEMP/report.py" <<'PY'
+          import json, sys
+          rc = int(sys.argv[2])
+          try:
+              with open(sys.argv[1]) as f:
+                  d = json.load(f)
+              res, err, sc = d["results"], d["errors"], d["paths"]["scanned"]
+              if not all(isinstance(x, list) for x in (res, err, sc)):
+                  raise TypeError("unexpected shape")
+          except Exception as e:
+              print("malformed scanner output:", e)
+              sys.exit(2)
+          AUDIT_ONLY = {"python_exec_rule-subprocess-popen-shell-true"}
+          def blocking(r):
+              return r.get("extra", {}).get("severity") == "ERROR" and r.get("check_id") not in AUDIT_ONLY
+          nb = sum(1 for r in res if blocking(r))
+          na = len(res) - nb
+          print("scanned files: %d, findings: %d, blocking: %d, audit: %d, errors: %d"
+                % (len(sc), len(res), nb, na, len(err)))
+          for r in res:
+              print("%s:%s: [%s] [%s] %s" % (r.get("path", "?"), r.get("start", {}).get("line", "?"),
+                    r.get("extra", {}).get("severity", "?"), "BLOCKING" if blocking(r) else "AUDIT",
+                    r.get("check_id", "?")))
+          for e in err:
+              print("error: %s %s" % (e.get("type", "?"), e.get("path", "")))
+          if err or rc not in (0, 1) or not sc:
+              sys.exit(2)
+          if nb:
+              sys.exit(1)
+          if res:
+              print("no blocking findings; audit findings remain")
+              sys.exit(0)
+          if rc:
+              sys.exit(2)
+          PY
+          cd "$RUNNER_TEMP"
+          exec "$RUNNER_TEMP/venv/bin/python" -I "$RUNNER_TEMP/report.py" "$RUNNER_TEMP/semgrep.json" "$rc"
