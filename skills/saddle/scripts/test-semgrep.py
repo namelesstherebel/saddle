@@ -14,7 +14,8 @@ from pathlib import Path
 HERE = Path(__file__).resolve().parent
 WIRE = HERE / "wire-semgrep.py"
 TPL = HERE.parent / "templates" / "semgrep"
-INSTALLED = [".semgrep/rules.yml", ".semgrep/scan.py", ".semgrep/README.md",
+INSTALLED = [".semgrep/rules.yml", ".semgrep/gitlab-rules.yml", ".semgrep/LICENSE.gitlab",
+             ".semgrep/gitlab-manifest.json", ".semgrep/scan.py", ".semgrep/README.md",
              ".github/workflows/semgrep.yml", ".semgrepignore"]
 
 
@@ -151,10 +152,35 @@ class ScannerTests(Base):
         self.assertIn(rule, r.stdout)
         self.assertNotIn(marker, r.stdout)
 
-    def test_python(self):
-        self.check_pair(("ok.py", "import subprocess\nsubprocess.run(['ls'])\n"),
-                        ("bad.py", "import subprocess\nsubprocess.run('ls', shell=True)\n"),
-                        "saddle.python.subprocess-shell-true", "shell=True")
+    def test_python_constant_shell_is_audit(self):
+        r = self.scan_with("ok.py", "import subprocess\nsubprocess.run(['ls'])\n")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        r = self.scan_with("const.py", "import subprocess\nsubprocess.run('ls', shell=True)\n")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertIn("saddle.python.subprocess-shell-true", r.stdout)
+        self.assertIn("[WARNING]", r.stdout)
+        self.assertIn("no blocking findings; audit findings remain", r.stdout)
+        self.assertNotIn("clean", r.stdout)
+        self.assertNotIn("shell=True", r.stdout)
+
+    def test_python_input_to_shell_blocks(self):
+        r = self.scan_with("inj.py", "import subprocess\ncmd = input()\nsubprocess.run(cmd, shell=True)\n")
+        self.assertEqual(r.returncode, 1, r.stdout + r.stderr)
+        self.assertIn("saddle.python.input-to-shell", r.stdout)
+        self.assertIn("blocking: ", r.stdout)
+        self.assertNotIn("blocking: 0", r.stdout)
+
+    def test_python_safe_args_pass(self):
+        r = self.scan_with("safe.py", "import subprocess\narg = input()\nsubprocess.run(['ls', arg])\n")
+        self.assertEqual(r.returncode, 0, r.stdout + r.stderr)
+        self.assertNotIn("saddle.python.input-to-shell", r.stdout)
+
+    def test_gitlab_bundle_present_and_required(self):
+        for name in ("gitlab-rules.yml", "LICENSE.gitlab", "gitlab-manifest.json"):
+            self.assertTrue((TPL / name).is_file(), name)
+        (self.repo / ".semgrep/gitlab-rules.yml").unlink()
+        r = self.scan_with("ok.py", "x = 1\n")
+        self.assertEqual(r.returncode, 2, r.stdout + r.stderr)
 
     def test_javascript(self):
         self.check_pair(("ok.js", "console.log(JSON.parse('1'));\n"),

@@ -1,12 +1,29 @@
 rules:
   - id: saddle.python.subprocess-shell-true
     languages: [python]
-    severity: ERROR
-    message: subprocess call with shell=True; pass an argument list without a shell instead.
+    severity: WARNING
+    message: subprocess call with shell=True (audit); pass an argument list without a shell instead.
     pattern: subprocess.$FUNC(..., shell=True, ...)
     metadata:
       license: MIT
       confidence: HIGH
+      category: security
+  - id: saddle.python.input-to-shell
+    mode: taint
+    languages: [python]
+    severity: ERROR
+    message: Input from input() or sys.argv reaches a shell command; pass an argument list without a shell instead.
+    pattern-sources:
+      - pattern: input(...)
+      - pattern: sys.argv[...]
+    pattern-sinks:
+      - patterns:
+          - pattern: subprocess.$FUNC($CMD, ..., shell=True, ...)
+          - focus-metavariable: $CMD
+      - pattern: os.system(...)
+    metadata:
+      license: MIT
+      confidence: MEDIUM
       category: security
   - id: saddle.javascript.eval
     languages: [javascript, typescript]

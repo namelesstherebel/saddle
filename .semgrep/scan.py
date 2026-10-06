@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""Repo-local Semgrep CE scan. Exit 0 clean, 1 findings, 2 errors/unverifiable.
+"""Repo-local Semgrep CE scan. Exit 0 no blocking findings, 1 blocking (ERROR) findings, 2 errors/unverifiable.
+WARNING/INFO findings are audit-visible and do not block (output says audit findings remain).
 
 Usage: python3 -I .semgrep/scan.py [target-dir]   (default: repo root). Local use only; CI runs inline.
 Uses only the fixed local rules file beside this script. This script writes no report to disk
@@ -15,6 +16,10 @@ from pathlib import Path
 PINNED = "1.179.0"
 HERE = Path(__file__).resolve().parent
 RULES = HERE / "rules.yml"
+GITLAB = HERE / "gitlab-rules.yml"
+CONFIGS = [RULES, GITLAB]
+# ERROR-severity IDs treated as audit-only (helper callers may pass constants; CE cannot see that).
+AUDIT_ONLY = {"python_exec_rule-subprocess-popen-shell-true"}
 
 
 def fail(msg):
@@ -24,8 +29,9 @@ def fail(msg):
 
 def main(argv):
     target = Path(argv[1]).resolve() if len(argv) > 1 else HERE.parent
-    if not RULES.is_file():
-        return fail("missing rules file " + str(RULES))
+    for cfg in CONFIGS:
+        if not cfg.is_file():
+            return fail("missing rules file " + str(cfg))
     if not target.is_dir():
         return fail("target is not a directory: " + str(target))
     env = dict(os.environ)
@@ -44,7 +50,10 @@ def main(argv):
     if v.returncode != 0 or got != PINNED:
         return fail("semgrep %s required, found %r" % (PINNED, got))
     cmd = [semgrep, "scan", "--oss-only", "--metrics=off", "--no-trace", "--disable-version-check",
-           "--error", "--strict", "--config", str(RULES), "--json", str(target)]
+           "--error", "--strict", "--no-rewrite-rule-ids"]
+    for cfg in CONFIGS:
+        cmd += ["--config", str(cfg)]
+    cmd += ["--json", str(target)]
     try:
         p = subprocess.run(cmd, capture_output=True, text=True, env=env, cwd=str(target), timeout=1800)
     except (OSError, subprocess.SubprocessError) as e:
@@ -58,19 +67,30 @@ def main(argv):
             raise TypeError("unexpected shape")
     except (ValueError, KeyError, TypeError) as e:
         return fail("malformed scanner output (%s); exit status %d" % (e, p.returncode))
-    print("scanned files: %d, findings: %d, errors: %d" % (len(scanned), len(results), len(errors)))
+    def blocking(r):
+        return r.get("extra", {}).get("severity") == "ERROR" and r.get("check_id") not in AUDIT_ONLY
+    nblock = sum(1 for r in results if blocking(r))
+    naudit = len(results) - nblock
+    print("scanned files: %d, findings: %d, blocking: %d, audit: %d, errors: %d"
+          % (len(scanned), len(results), nblock, naudit, len(errors)))
     for r in results:
         start = r.get("start", {}).get("line", "?")
         sev = r.get("extra", {}).get("severity", "?")
-        print("%s:%s: [%s] %s" % (r.get("path", "?"), start, sev, r.get("check_id", "?")))
+        print("%s:%s: [%s] [%s] %s" % (r.get("path", "?"), start, sev,
+                                       "BLOCKING" if blocking(r) else "AUDIT", r.get("check_id", "?")))
     for e in errors:
         print("error: %s %s" % (e.get("type", "?"), e.get("path", "")), file=sys.stderr)
     if errors:
         return 2
+    if p.returncode not in (0, 1):
+        return fail("scanner exited %d; unverifiable" % p.returncode)
     if not scanned:
         return fail("zero files scanned; refusing to report clean")
-    if results:
+    if nblock:
         return 1
+    if results:
+        print("no blocking findings; audit findings remain")
+        return 0
     if p.returncode != 0:
         return fail("scanner exited %d without findings" % p.returncode)
     print("clean (limited starter rules; not proof of absence of issues)")

@@ -42,8 +42,12 @@ jobs:
           SG="$RUNNER_TEMP/venv/bin/semgrep"
           test "$("$SG" --version | tail -n1)" = "1.179.0"
           set +e
+          test -f .semgrep/rules.yml
+          test -f .semgrep/gitlab-rules.yml
           "$SG" scan --oss-only --metrics=off --no-trace --disable-version-check \
-            --error --strict --config .semgrep/rules.yml --json . > "$RUNNER_TEMP/semgrep.json"
+            --error --strict --no-rewrite-rule-ids \
+            --config .semgrep/rules.yml --config .semgrep/gitlab-rules.yml \
+            --json . > "$RUNNER_TEMP/semgrep.json"
           rc=$?
           set -e
           cat > "$RUNNER_TEMP/report.py" <<'PY'
@@ -58,15 +62,26 @@ jobs:
           except Exception as e:
               print("malformed scanner output:", e)
               sys.exit(2)
-          print("scanned files: %d, findings: %d, errors: %d" % (len(sc), len(res), len(err)))
+          AUDIT_ONLY = {"python_exec_rule-subprocess-popen-shell-true"}
+          def blocking(r):
+              return r.get("extra", {}).get("severity") == "ERROR" and r.get("check_id") not in AUDIT_ONLY
+          nb = sum(1 for r in res if blocking(r))
+          na = len(res) - nb
+          print("scanned files: %d, findings: %d, blocking: %d, audit: %d, errors: %d"
+                % (len(sc), len(res), nb, na, len(err)))
           for r in res:
-              print("%s:%s: %s" % (r.get("path", "?"), r.get("start", {}).get("line", "?"), r.get("check_id", "?")))
+              print("%s:%s: [%s] [%s] %s" % (r.get("path", "?"), r.get("start", {}).get("line", "?"),
+                    r.get("extra", {}).get("severity", "?"), "BLOCKING" if blocking(r) else "AUDIT",
+                    r.get("check_id", "?")))
           for e in err:
               print("error: %s %s" % (e.get("type", "?"), e.get("path", "")))
-          if err or not sc:
+          if err or rc not in (0, 1) or not sc:
               sys.exit(2)
-          if res:
+          if nb:
               sys.exit(1)
+          if res:
+              print("no blocking findings; audit findings remain")
+              sys.exit(0)
           if rc:
               sys.exit(2)
           PY

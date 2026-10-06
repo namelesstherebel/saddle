@@ -15,6 +15,9 @@ from pathlib import Path
 T = Path(__file__).resolve().parent.parent / "templates" / "semgrep"
 FILES = [
     ("rules.yml", ".semgrep/rules.yml"),
+    ("gitlab-rules.yml", ".semgrep/gitlab-rules.yml"),
+    ("LICENSE.gitlab", ".semgrep/LICENSE.gitlab"),
+    ("gitlab-manifest.json", ".semgrep/gitlab-manifest.json"),
     ("scan.py", ".semgrep/scan.py"),
     ("README.md", ".semgrep/README.md"),
     ("workflow.yml", ".github/workflows/semgrep.yml"),
@@ -89,6 +92,11 @@ def main(argv):
         return 2
     if not is_git_root(root):
         print("not a git root: %s" % root, file=sys.stderr)
+        return 2
+    missing = [src for src, _ in FILES if not (T / src).is_file()]
+    if missing:
+        print("missing template files (broader rule bundle must be present): " + ", ".join(missing),
+              file=sys.stderr)
         return 2
     plan = [(Path(dst), (T / src).read_bytes(), True) for src, dst in FILES]
     plan.append((Path(".semgrepignore"), IGNORE, False))  # presence only
