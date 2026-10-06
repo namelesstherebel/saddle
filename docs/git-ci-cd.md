@@ -88,3 +88,15 @@ No implicit production release, no credentials handling, and no new persistent a
 ## 6. Status reporting
 
 Onboarding and status report each area as observed: Git state, CI gates, review, CD. Use "not configured" when nothing exists and "not run" when it exists but has no result. Do not claim enforcement where only documentation exists.
+
+## 7. Optional CodeRabbit setup
+
+Only when the task asks for it. Documentation only; no APIs, executables, settings changes or app installation. Template: [coderabbit.yaml](../templates/coderabbit.yaml). Official docs: [auto-review](https://docs.coderabbit.ai/configuration/auto-review), [inheritance](https://docs.coderabbit.ai/configuration/configuration-inheritance), [YAML configuration](https://docs.coderabbit.ai/getting-started/yaml-configuration).
+
+- Coverage: check the actual App installation selection read-only. OAuth scopes, subscription, and absent bot comments do not prove coverage. Respect a 403 and report unknown.
+- Inspect existing YAML and effective UI/global overrides first. `inheritance: true` preserves parent settings, but arrays merge and global overrides win.
+- The default branch is included in auto-review target matching; it does not guarantee a review, because installation, enabled/drafts/filters and plan eligibility still apply. Anchored patterns (for example `^staging$`) add only verified, approved additional PR targets; never an all-branches wildcard.
+- YAML is read from the PR feature head, so old PR branches need separately coordinated updates. A copied template is not live shared config.
+- Emit the template only where existing task authorization covers that specific repo; no future-repo grant.
+- Do not change installation, permissions or billing, post bot commands, or publish during onboarding.
+- Report coverage, config, targets and exact-head review evidence, or unknown.

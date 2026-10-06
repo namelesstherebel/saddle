@@ -14,6 +14,8 @@ Git onboarding and CI/CD setup guidance is in [docs/git-ci-cd.md](docs/git-ci-cd
 
 Optional Semgrep adoption: `python3 -I skills/saddle/scripts/wire-semgrep.py ROOT` installs a repo-local scan (`--check` to verify). Local scanner 1.179.0 (engine pinned, dependencies not locked) with 84 local rules: 79 vendored GitLab MIT rules (68 Python, 11 JS/TS) pinned to a `sast-rules` commit, plus 5 custom Saddle rules (Python input-to-shell taint, shell audit, JS eval/exec, PHP eval). PHP is custom eval only. No Rust/Dart/Swift/C++/SQL/Shell/Astro coverage, SCA, secrets or cross-file analysis. Every finding stays visible: ERROR findings block, WARNING/INFO are audit (not automatically harmless), and one upstream rule is audit-only. Exit 0 means no blocking findings, not clean. No account, token or runtime Registry download; metrics, version-check and trace are off and no source is uploaded. CI uses a hosted runner with an exact-SHA action and does not execute PR helpers. Details: [template README](skills/saddle/templates/semgrep/README.md).
 
+Machine enrollment gate: `bash .semgrep/scan.sh` runs Registry `p/ci` rules (network required), separately from the pinned Saddle scan above.
+
 ## Use
 
 The skill is [skills/saddle/SKILL.md](skills/saddle/SKILL.md).
