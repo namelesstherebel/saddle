@@ -12,6 +12,8 @@ The full standard is in [docs/project-standard.md](docs/project-standard.md). St
 
 Git onboarding and CI/CD setup guidance is in [docs/git-ci-cd.md](docs/git-ci-cd.md), with a fill-in [checklist](templates/git-ci-checklist.md). It is documentation only and enforces nothing. It includes an automatic ready-for-review convention: unfinished work stays draft; on authorized delivery, agents push the final head (no force-push), verify the intended PR and passing required pre-review checks on that exact SHA, then mark only that PR ready unless held. Ready is not a review verdict, merge, or deploy. Adopted repos get this when Saddle is applied; existing repos are not changed retroactively.
 
+Optional Semgrep adoption: `python3 -I skills/saddle/scripts/wire-semgrep.py ROOT` installs a repo-local scan (`--check` to verify). Local scanner 1.179.0 (engine pinned, dependencies not locked); limited custom MIT starter rules for Python/JS/TS/PHP only, with no Rust/Dart/Swift/Shell/SQL/Astro coverage, SCA, secrets or cross-file analysis. No account or token; metrics, version-check and trace are off and no source is uploaded. CI uses a hosted runner with an exact-SHA action and does not execute PR helpers. Details: [template README](skills/saddle/templates/semgrep/README.md).
+
 ## Use
 
 The skill is [skills/saddle/SKILL.md](skills/saddle/SKILL.md).

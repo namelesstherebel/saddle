@@ -1,0 +1,6 @@
+# Saddle Semgrep: dependency/build output only. Tests are scanned.
+node_modules/
+vendor/
+.venv/
+build/
+dist/

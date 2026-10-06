@@ -26,6 +26,10 @@ Normative detail lives in [the standard](../../docs/project-standard.md). Do not
 6. **Git/CI/CD.** Follow [the Git/CI/CD guide](../../docs/git-ci-cd.md) and fill in [the checklist](../../templates/git-ci-checklist.md) as needed: inspect actual repo, index, `origin` and branch state; discover existing test/lint/build commands; record gate evidence with SHA. Inspect before any Git change. Initialize a repo only if it is genuinely new (never nested inside an existing repo), and add or retarget a remote only when the task explicitly authorizes it; never retarget silently. Do not re-ask for authorization the task already gave. Executable CI is a separately assigned pipeline task: do not add workflows, change protections or credentials, or deploy implicitly. Onboarding does not publish. For adopted projects, record the ready-for-review convention (draft while unfinished; on authorized delivery, push without force, verify intended remote PR/head and passing required pre-review checks on that exact SHA, recheck, then mark only that PR ready unless held; never merge or deploy) as in the guide's section 3; it applies once Saddle is actually applied, not retroactively, and grants no new authority.
 7. **Summarize** what changed, the memory mode, Git/CI/CD state (`not configured` / `not run` where true), and what was not verified.
 
+## Semgrep (optional or assigned step; runs before memory)
+
+Run `python3 -I skills/saddle/scripts/wire-semgrep.py ROOT` (`--check` to verify), then record the result. An explicit current request authorizes adding the executable repo-local CI it installs. Generic onboarding only offers adoption; it does not implicitly add workflows, change protections or publish. Scanner is Semgrep 1.179.0 (engine pinned, dependencies not locked) with limited custom MIT starter rules for Python/JS/TS/PHP; no Rust/Dart/Swift/Shell/SQL/Astro coverage, SCA, secrets or cross-file analysis. Workflow: hosted runner, exact SHA, inline isolated Python, no PR helper execution. No account/token; local rules; metrics, version-check, trace off; no source upload. The local script writes no report files, though the scanner may write local logs/settings. Use `SSL_CERT_FILE=/etc/ssl/cert.pem` only if the Mac sandbox gives empty trust anchors; never disable TLS. Semgrep prefilters files, so it is not a syntax check; keep language-native checks. Never claim a clean scan proves safety. Report as `not configured` / `not run` when true.
+
 ## Status
 
 Report each item as pass/warn/fail, from what was actually observed:
@@ -35,6 +39,7 @@ Report each item as pass/warn/fail, from what was actually observed:
 - local `origin` matches `canonical_remote` after normalization (lowercase GitHub, SSH = HTTPS, no `.git`)
 - last observed memory mode (`tested` / `instruction-only` / `unavailable`), or "not checked"
 - Git state (branch, upstream, dirty/index), CI gates (command, SHA, result) and CD approval: observed value, `not configured`, or `not run`; docs alone are not enforcement
+- Semgrep: `python3 -I skills/saddle/scripts/wire-semgrep.py --check ROOT` result, or `not configured`
 - legacy artifacts present (`logs/`, `graphify-out/`), noted only, never flagged for deletion
 
 No instruction file and no descriptor → "Not saddled. Run /saddle."

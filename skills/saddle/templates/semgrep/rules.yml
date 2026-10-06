@@ -1,0 +1,40 @@
+rules:
+  - id: saddle.python.subprocess-shell-true
+    languages: [python]
+    severity: ERROR
+    message: subprocess call with shell=True; pass an argument list without a shell instead.
+    pattern: subprocess.$FUNC(..., shell=True, ...)
+    metadata:
+      license: MIT
+      confidence: HIGH
+      category: security
+  - id: saddle.javascript.eval
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: eval() executes dynamic code; remove it or use a safe parser.
+    pattern: eval(...)
+    metadata:
+      license: MIT
+      confidence: HIGH
+      category: security
+  - id: saddle.javascript.child-process-exec
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: child_process exec runs through a shell; prefer execFile or spawn with an argument array. Only explicit child_process.exec and require("child_process").exec calls are reported.
+    pattern-either:
+      - pattern: child_process.exec(...)
+      - pattern: require("child_process").exec(...)
+      - pattern: require('child_process').exec(...)
+    metadata:
+      license: MIT
+      confidence: MEDIUM
+      category: security
+  - id: saddle.php.eval
+    languages: [php]
+    severity: ERROR
+    message: eval() executes dynamic code; remove it.
+    pattern: eval(...)
+    metadata:
+      license: MIT
+      confidence: HIGH
+      category: security
