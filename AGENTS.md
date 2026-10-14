@@ -60,7 +60,7 @@ CRITICAL REASONING GATES:
 
 Core changed without a test change is flagged globally, even if no test file changed.
 
-Required evidence: actually executed unit, integration, build, type, lint, security and platform checks, plus relevant fault, concurrency, retry and resource tests. Missing, skipped, errored or zero-test results are not a pass. A reviewed-base check may be marked N/A only with an explicit reason.
+Required evidence: actually executed applicable unit, integration, build, type, lint, security and platform checks, plus relevant fault, concurrency, retry and resource tests. Missing, skipped, errored or zero-test results for applicable checks are not a pass. Non-applicable checks and reviewed-base checks may be marked N/A only with an explicit reason.
 
 Labels (apply those whose criteria match):
 
