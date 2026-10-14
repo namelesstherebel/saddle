@@ -34,6 +34,11 @@ CI state: <not configured / configured / not run>
   - [ ] All required pre-review checks passed on that exact SHA (no failing/pending/missing/unknown/skipped; absent check config is a blocker)
   - [ ] Head and state rechecked immediately before transition; only the intended PR changed
   - Ready requests review; it is not a review verdict. CI/review integration unavailable → report, keep draft.
+- [ ] Test evidence (actually executed): executed <n> / passed <n> / failed <n> / errors <n> / skipped <n> (count unit: test cases as reported, not inferred assertion counts); provider job/run/attempt: <ids>; platform/runtime: <value>; report link: <ref>; head: <sha>. Zero tests, or any skip, failure, error or missing evidence, is not a pass; no new exemptions.
+  - Evidence provenance: <provider-reported / script-reported / independently verified>. Provider-reported = taken from the CI provider's own record; script-reported = emitted by a project script or test runner output; independently verified = re-checked by a separate party or source. None is an immutable or trusted attestation.
+- [ ] Code review status at head <sha>: <completed / pending / skipped / absent / error>; model: <known: name / unknown>
+- [ ] Security review status at head <sha>: <completed / pending / skipped / absent / error>; model: <known: name / unknown>
+  - Status and model are separate fields. Only `completed` at the exact current head counts as review; an unknown model alone does not invalidate a confirmed native review.
 - [ ] Independent review verdict at head SHA: <sha, verdict>
 - [ ] Required checks passing at that same SHA
 - [ ] No commits since review/checks (otherwise rerun and re-review)
