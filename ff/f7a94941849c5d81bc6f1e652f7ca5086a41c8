@@ -1,0 +1,25 @@
+AGENTS.md
+  s_49d3c755ffe5ef::t_882c50f9654074 13
+.github/workflows/semgrep.yml
+  s_49d3c755ffe5ef::t_882c50f9654074 157-167
+README.md
+  s_49d3c755ffe5ef::t_2c5240bdc15782 15,17
+skills/saddle/SKILL.md
+  s_49d3c755ffe5ef::t_a3822dd75749b3 31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fff7a94941849c5d81bc6f1e652f7ca5086a41c8",
+  "prompts": {},
+  "sessions": {
+    "s_49d3c755ffe5ef": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a13b8e-66d9-73f1-9fc0-23edaafa9d3c",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Stefan Doughty <126630357+namelesstherebel@users.noreply.github.com>"
+    }
+  }
+}
