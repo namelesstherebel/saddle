@@ -1,0 +1,20 @@
+AGENTS.md
+  h_3c224a7ef80075 35
+README.md
+  h_3c224a7ef80075 15-17
+skills/saddle/SKILL.md
+  h_3c224a7ef80075 31
+skills/saddle/scripts/test-semgrep.py
+  h_3c224a7ef80075 408-409
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b33ffa6aa2ad069baeb6ea9782ffb1a59d8199ca",
+  "prompts": {},
+  "humans": {
+    "h_3c224a7ef80075": {
+      "author": "Stefan Doughty <126630357+namelesstherebel@users.noreply.github.com>"
+    }
+  }
+}
