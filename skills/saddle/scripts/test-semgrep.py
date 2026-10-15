@@ -405,4 +405,5 @@ class ScannerTests(Base):
 
 
 if __name__ == "__main__":
-    unittest.main()
+    result = unittest.main(exit=False).result
+    sys.exit(not (result.testsRun and result.wasSuccessful() and not result.skipped and not result.expectedFailures))

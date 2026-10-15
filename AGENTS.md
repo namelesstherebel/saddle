@@ -32,7 +32,7 @@ Reviewer roles:
 - Semgrep: known static patterns.
 - Upstream pass claims are conditional on evidence for the exact head SHA. Dedupe root causes, retain the new impact. Reasoning is not execution.
 
-Context to cite, never invent: base SHA the current PR base SHA, obtained from GitHub for this review and cited explicitly (not the inventory snapshot SHA); invariant docs `AGENTS.md`, `CLAUDE.md`, `README.md`. Source paths: `scripts/**`, `skills/**`. Test paths: `tests/**`, `**/test_*.py`.
+Context to cite, never invent: base SHA the current PR base SHA, obtained from GitHub for this review and cited explicitly (not the inventory snapshot SHA); invariant docs `AGENTS.md`, `CLAUDE.md`, `README.md`. Source paths: `scripts/**`, `skills/**`. Test paths: `tests/**`, `**/test_*.py`, `skills/saddle/scripts/test-semgrep.py`.
 
 ### Reviewer prompts
 
