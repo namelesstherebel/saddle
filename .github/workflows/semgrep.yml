@@ -154,3 +154,14 @@ jobs:
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
           "$RUNNER_TEMP/test-venv/bin/python" -I skills/saddle/scripts/test-semgrep.py
           test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+      - name: Run existing review-tooling tests at exact head
+        run: |
+          set -eu
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
+          "$RUNNER_TEMP/test-venv/bin/python" -I -B - <<'PY'
+          import sys, unittest
+          suite = unittest.defaultTestLoader.discover("tests")
+          result = unittest.TextTestRunner(verbosity=2).run(suite)
+          sys.exit(not (result.testsRun and result.wasSuccessful() and not result.skipped and not result.expectedFailures))
+          PY
+          test "$(git rev-parse HEAD)" = "$EXPECTED_SHA"
