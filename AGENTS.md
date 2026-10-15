@@ -33,7 +33,7 @@ Reviewer roles:
 - Semgrep: known static patterns.
 - Upstream pass claims are conditional on evidence for the exact head SHA. Dedupe root causes, retain the new impact. Reasoning is not execution.
 
-Context to cite, never invent: base SHA the current PR base SHA, obtained from GitHub for this review and cited explicitly (not the inventory snapshot SHA); invariant docs `AGENTS.md`, `CLAUDE.md`, `README.md`. Source paths: `scripts/**`, `skills/**`. Test paths: `tests/**`, `**/test_*.py`, `skills/saddle/scripts/test-semgrep.py`.
+Context to cite, never invent: base SHA the current PR base SHA, obtained from GitHub for this review and cited explicitly (not the inventory snapshot SHA); invariant docs `AGENTS.md`, `CLAUDE.md`, `README.md`. Source paths: `scripts/**`, `skills/**`. Test paths: `tests/**`, `**/test_*.py`, `skills/saddle/scripts/test-semgrep.py`. Re-verify invariant, source and test paths against the current PR for every review.
 
 ### Reviewer prompts
 
@@ -46,8 +46,8 @@ You are our front-line runtime-simulation gate. Focus intensely on what happens 
 
 Test path instructions:
 Audit the accompanying test logic inside this pull request.
-- STRATEGY VALIDATION: Verify tests cover edge-cases: null/empty payloads, network drop simulation, and boundary integer limits.
-- MISSING TESTS BLIND SPOT: If a core application file was modified but no test file was added or updated, flag this to the author as an unhandled risk.
+- STRATEGY VALIDATION: Verify tests cover edge cases applicable to the changed code’s inputs and risks (for example, null/empty payloads, network drops, or boundary integer limits).
+- MISSING TESTS BLIND SPOT: For core application changes, assess existing and changed tests against the affected behavior; flag only an actual coverage gap.
 
 Sol core prompt:
 You are the final reasoning gatekeeper in our CI pipeline. Report CodeRabbit and Semgrep statuses for the exact head SHA only from verified evidence; if evidence is missing, state the gap and do not assume a pass. Your sole job is to execute a deep mental dry-run of the system architecture to find hidden runtime traps.
@@ -59,7 +59,7 @@ CRITICAL REASONING GATES:
 4. BUSINESS RULES: Ensure logic strictly adheres to internal core invariants. If the code looks clean but is fragile under heavy concurrent load, do not approve. Detail the exact runtime execution break path.
 ```
 
-Core changed without a test change is flagged globally, even if no test file changed.
+Assess coverage for every core change, even if no test file changed; existing tests can satisfy coverage. Flag only an actual gap.
 
 Required evidence: actually executed applicable unit, integration, build, type, lint, security and platform checks, plus relevant fault, concurrency, retry and resource tests. Missing, skipped, errored or zero-test results for applicable checks are not a pass. Non-applicable checks and reviewed-base checks may be marked N/A only with an explicit reason.
 
@@ -70,4 +70,4 @@ Labels (apply those whose criteria match):
 - `database-migration`: schema or migration changes that alter persisted semantics.
 - `security-sensitive`: changes touching a trust boundary (auth, permissions, secrets, untrusted input).
 - `high-risk-architecture`: cross-module contracts or concurrency changes.
-- `no-tests`: core change or applicable test gap with no test change.
+- `no-tests`: an unaddressed applicable test coverage gap.
