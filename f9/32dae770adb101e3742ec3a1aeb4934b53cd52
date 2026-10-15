@@ -1,0 +1,21 @@
+AGENTS.md
+  s_49d3c755ffe5ef::t_801063a2f8a9cf 53
+templates/AGENTS.md
+  s_49d3c755ffe5ef::t_8561c3a1691546 40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f932dae770adb101e3742ec3a1aeb4934b53cd52",
+  "prompts": {},
+  "sessions": {
+    "s_49d3c755ffe5ef": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a13b8e-66d9-73f1-9fc0-23edaafa9d3c",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Stefan Doughty <126630357+namelesstherebel@users.noreply.github.com>"
+    }
+  }
+}
