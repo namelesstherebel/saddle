@@ -1,0 +1,21 @@
+AGENTS.md
+  s_49d3c755ffe5ef::t_c385365d5e2396 36,49-50,62,73
+templates/AGENTS.md
+  s_49d3c755ffe5ef::t_3b960dd711a970 23,36-37,49,60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "8db4a1b5dbaa8b1764111fa60b62ffb5e4c2bc6c",
+  "prompts": {},
+  "sessions": {
+    "s_49d3c755ffe5ef": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "01a13b8e-66d9-73f1-9fc0-23edaafa9d3c",
+        "model": "gpt-6.1-sol"
+      },
+      "human_author": "Stefan Doughty <126630357+namelesstherebel@users.noreply.github.com>"
+    }
+  }
+}
