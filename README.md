@@ -6,7 +6,7 @@ A saddled repo has:
 
 - **`AGENTS.md`**: canonical project instructions, readable by any coding tool.
 - **`CLAUDE.md`**, optionally: a compatibility pointer to `AGENTS.md` for clients that need it.
-- **`.hindsight/project.json`**: a tracked memory identity descriptor (`schema_version`, `bank_id`, `canonical_remote`).
+- Optional existing **`.hindsight/project.json`** descriptors are preserved; they are not an onboarding or readiness requirement.
 
 The full standard is in [docs/project-standard.md](docs/project-standard.md). Starting points are in [templates/AGENTS.md](templates/AGENTS.md) and [templates/project.json](templates/project.json).
 
@@ -22,14 +22,14 @@ Machine enrollment gate: `bash .semgrep/scan.sh` runs Registry `p/ci` rules (net
 
 The skill is [skills/saddle/SKILL.md](skills/saddle/SKILL.md).
 
-- `/saddle`: onboard the current repo. It preserves existing instructions, infers intent, and asks only about blockers. It checks identity, then checks recall and retain with an authorized, non-sensitive probe.
-- `/saddle status`: report instruction files, descriptor validity, origin match, and the last observed memory mode.
+- `/saddle`: onboard the current repo. It preserves existing instructions, infers intent, and asks only about blockers. Memory enrollment, identity and recall/retain checks are skipped by default. Hindsight is retired for non-client Studio repos; never silently re-enroll them. Explicitly authorized existing client integrations remain separate.
+- `/saddle status`: report instruction files and Git/CI/CD evidence. Memory is `not enabled` by default, not a readiness failure.
 
 ## Boundaries
 
 - Saddle does not create banks, install software, or publish during onboarding. Authorized project delivery may push and mark a PR ready under the policy above; it never merges or deploys automatically.
 - It ships no identity CLI and no client. The private [hindsight-agent-setup companion](https://github.com/namelesstherebel/hindsight-agent-setup) owns normalization, the local root registry, hooks, auth, and transport (repository access required).
-- Hooks and automatic context injection are not promised in ordinary desktop or cloud chats. Each environment is reported as tested, instruction-only, or unavailable.
+- Memory probes require explicit current project authorization; old descriptors or service availability do not authorize use. Hooks and automatic context injection are not promised in ordinary desktop or cloud chats. Each environment is reported as tested, instruction-only, or unavailable.
 - The descriptor is not access authorization.
 
 ## Legacy

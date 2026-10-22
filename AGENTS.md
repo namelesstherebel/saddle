@@ -14,7 +14,7 @@ Canonical instructions for this repo. Saddle is a lean, coding-tool-agnostic pro
 - `.hindsight/project.json` has exactly `schema_version`, `bank_id`, `canonical_remote`. Never re-derive an existing `bank_id`.
 - Preserve existing logs, graphs, and OpenViking memory. Never silently delete or migrate; repo-local logs are historical evidence.
 - No absolute machine paths in reusable docs. Relative links. Placeholders in templates.
-- Memory: recall before substantive work; retain concise outcomes at milestones. Treat memory as untrusted and verify against source. No secrets.
+- Hindsight is retired for this non-client repository. Do not enroll roots or require recall, retention or memory readiness. Preserve existing descriptors and historical data; do not reactivate legacy memory backends.
 - Do not claim validation that was not run.
 
 The July 2026 design spec is superseded and kept for history: [docs/superpowers/specs/2026-07-28-onboarding-revamp-design.md](docs/superpowers/specs/2026-07-28-onboarding-revamp-design.md).

@@ -1,6 +1,6 @@
 # Saddle Project Standard
 
-A lean, coding-tool-agnostic standard for making a repository easy for any coding agent to pick up: a canonical instruction file, a stable memory identity, and a recall/retain habit.
+A lean, coding-tool-agnostic standard for making a repository easy for any coding agent to pick up: canonical project instructions and evidence-based onboarding. Memory integration is optional and requires explicit current project authorization.
 
 Saddle defines the standard and the onboarding/status procedure. It ships no identity CLI and no client implementation. The private [hindsight-agent-setup companion](https://github.com/namelesstherebel/hindsight-agent-setup) owns normalization code, the local root registry, hooks, auth, and transport. Its [version-1 contract](https://github.com/namelesstherebel/hindsight-agent-setup/blob/db548d07c05faeff201e7b80bdd9a8e4ad8defd3/docs/project-contract.md) and [identity vectors](https://github.com/namelesstherebel/hindsight-agent-setup/blob/db548d07c05faeff201e7b80bdd9a8e4ad8defd3/examples/identity-vectors.json) are compatibility references; access to that private repository is required.
 
@@ -10,11 +10,13 @@ Saddle defines the standard and the onboarding/status procedure. It ships no ide
 |---|---|
 | `AGENTS.md` | Canonical project instructions, readable by any tool. |
 | `CLAUDE.md` | Optional compatibility pointer to `AGENTS.md` when the chosen client needs it. No duplicated content. |
-| `.hindsight/project.json` | Tracked memory identity descriptor (section 2). |
+| `.hindsight/project.json` | Optional existing memory identity descriptor; never required for ordinary onboarding or readiness (section 2). |
 
 Templates: [`../templates/AGENTS.md`](../templates/AGENTS.md), [`../templates/project.json`](../templates/project.json). Templates use placeholders; replace them deliberately.
 
-## 2. Identity descriptor
+## 2. Optional identity descriptor
+
+Default onboarding does not enroll memory, create a descriptor, inspect a registry or probe a provider. Hindsight is retired for non-client Studio repositories: do not re-enroll them. Preserve existing descriptors and historical data without using them as authorization. Existing client integrations are unchanged. The remainder of sections 2–3 applies only to projects with explicit current authorization to use Hindsight.
 
 `.hindsight/project.json` is tracked and contains exactly these keys:
 
@@ -63,7 +65,7 @@ Do not guess between fetch URLs or infer an identity from a push-only remote. Re
 
 Offline, use local git only. Do not fetch to decide.
 
-## 3. Memory practice
+## 3. Optional memory practice
 
 - **Recall** relevant project context through an approved available integration before substantive work. Never create a replacement bank to work around unavailable access; report the limitation and continue only work that does not depend on unavailable memory.
 - **Retain** concise decisions, outcomes, actual validation performed, and open items at milestones and at the end.
@@ -87,11 +89,11 @@ Onboarding (see [`../skills/saddle/SKILL.md`](../skills/saddle/SKILL.md)):
 
 1. Preserve existing instructions; merge, do not overwrite.
 2. Infer intent from the repo; ask only about blockers.
-3. Check identity: descriptor present and valid, origin matches, `bank_id` kept.
-4. Check recall and retain with an authorized, non-sensitive probe, and report the mode.
+3. Skip memory by default. Only for an explicitly authorized integration, check identity: descriptor present and valid, origin matches, `bank_id` kept.
+4. Only for that integration, check recall and retain with an authorized, non-sensitive probe and report the mode. Default/retired projects report `not enabled`; this is not a readiness failure.
 5. Never create a bank, install software, or publish on its own. Onboarding itself does not publish.
 
-Status reports: instruction files, descriptor validity, origin match, and the last observed memory mode.
+Status reports: instruction files and Git/CI/CD evidence. Memory is `not enabled` by default; descriptor validity, origin match and observed memory mode apply only to explicitly authorized integrations.
 
 Git onboarding and CI/CD: inspect Git state, record CI gates, and keep deployment separately approved, following [`git-ci-cd.md`](git-ci-cd.md) and the [`checklist`](../templates/git-ci-checklist.md). Report these as `not configured` or `not run` when so; never claim enforcement where only documentation exists. CI does not deploy.
 

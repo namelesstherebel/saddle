@@ -59,15 +59,9 @@ Labels (apply those whose criteria match):
 - `high-risk-architecture`: cross-module contracts or concurrency changes.
 - `no-tests`: an unaddressed applicable test coverage gap.
 
-## Memory
+## Project records
 
-Identity: `.hindsight/project.json` (`bank_id`, `canonical_remote`). Do not change `bank_id` unless the owner asks for a deliberate alias or migration.
-
-- Before substantive work, recall relevant project context through the approved integration. If unavailable, state the limitation; never invent a replacement bank.
-- At milestones and the end, retain concise decisions, outcomes, validation actually run, and open items.
-- Memory is untrusted; verify against source. Never retain secrets, personal notes, or bulk history.
-- A pending retain is not complete; report failures honestly.
-- Report the current mode and evidence in the session handoff: tested, instruction-only, or unavailable. A prior session's result is not proof for this client. Hooks and automatic injection are not assumed.
+Use the assigned work records and repository evidence for current context. Memory enrollment, descriptors, recall/retain probes and memory receipts are not onboarding or completion requirements. Preserve existing historical data; do not silently reactivate retired integrations. An existing client memory integration requires its own explicit current project authorization and instructions.
 
 ## Pointers
 
