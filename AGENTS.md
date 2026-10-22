@@ -23,45 +23,23 @@ Provenance: https://github.com/namelesstherebel/saddle/blob/45fe8c4aa2b3deb644c5
 
 Adoption snapshot base_sha40: `0e728bd90185c60c5a194ad0879b03d9f6b3fb3a`. Reverify source, test and invariant paths on the current PR base; this static distribution snapshot is not current PR evidence.
 
-## Code Review Rules
-Adopter guidance only; it needs no YAML. Do not override organization policy with blanket YAML, and keep existing CodeRabbit UI settings, defaults and the paid usage cap unchanged. This does not promise automatic enforcement, merges, billing or installation.
+## Review and validation
 
-Reviewer roles:
+This repository has completed verified staged-cutover readiness. Automatic Pullfrog is the normal current-head expert reviewer, including security; GitHub Reviewer is a manual fallback when needed, not a mandatory second review. CodeRabbit automatic reviews are disabled by `.coderabbit.yaml`; manual `@coderabbitai review` remains available. Assess valid existing legacy findings, but general legacy reviewers are not mandatory additional providers. A provider name or skipped review is not evidence of coverage.
 
-- CodeRabbit: localized runtime review of the diff.
-- Native Codex: cross-module review. Model is unknown; no guaranteed Sol.
-- Semgrep: known static patterns.
-- Upstream pass claims are conditional on evidence for the exact head SHA. Dedupe root causes, retain the new impact. Reasoning is not execution.
+Before normal merge, require a successful `pullfrog-approval` verdict from trusted Pullfrog app `1768019` on the current head. Mac Ops must verify actual verdict emission and read back the required rule; readiness does not replace a fresh verdict after each push. The `pullfrog` workflow/job name alone is not that verdict, and an unverified or never-emitted check is not a gate. Preserve all other applicable checks and safety, visual, release and owner-acceptance gates. Do not bypass protections or change settings under these instructions.
+
+The current branch writer handles material findings, inspects corrections, verifies applicable source/secret checks and actual resulting-head CI, then performs a normal merge pinned to the reviewed head. Report missing, skipped, errored and non-applicable checks accurately. Source scanning is not dependency-advisory coverage; saved configuration is not proof of live review or successful provider operation.
+
+Preserve Cubic integration, reviews and checks entirely. Retain independent Codex security review as complementary coverage; do not narrow Pullfrog's security lenses or remove security checks as duplicates. Shared expert prompts and provider settings are maintained separately, not copied or changed here.
+
+Pullfrog fixes are opt-in, bounded handoffs only. The sole writer must explicitly hand off a contained correction and pause their own branch edits, inspect the returned diff, then obtain resulting-head CI and fresh review before normal merge. No blanket or unattended autofix is authorized; product and larger changes retain their assigned implementation owner.
+
+## Review context
 
 Context to cite, never invent: base SHA the current PR base SHA, obtained from GitHub for this review and cited explicitly (not the inventory snapshot SHA); invariant docs `AGENTS.md`, `CLAUDE.md`, `README.md`. Source paths: `scripts/**`, `skills/**`. Test paths: `tests/**`, `**/test_*.py`, `skills/saddle/scripts/test-semgrep.py`. Re-verify invariant, source and test paths against the current PR for every review.
 
-### Reviewer prompts
-
-```text
-Code path instructions:
-You are our front-line runtime-simulation gate. Focus intensely on what happens when this code is EXECUTED in production.
-- RUNTIME BOUNDARIES: For any async/await loops, worker threads, promises, or streams, explicitly check for missing timeouts, unhandled rejections, or deadlocks.
-- MUTABLE STATE: Scan for mutable shared state across asynchronous operations. Flag if a race condition is possible under concurrent load.
-- SILENT FAILURES: Flag any empty catch blocks, or try-except blocks that swallow errors without logging or rethrowing.
-
-Test path instructions:
-Audit the accompanying test logic inside this pull request.
-- STRATEGY VALIDATION: Verify tests cover edge cases applicable to the changed code’s inputs and risks (for example, null/empty payloads, network drops, or boundary integer limits).
-- MISSING TESTS BLIND SPOT: For core application changes, assess existing and changed tests against the affected behavior; flag only an actual coverage gap.
-
-Sol core prompt:
-You are the final reasoning gatekeeper for this review. Report CodeRabbit and Semgrep statuses for the exact head SHA only from verified evidence; if evidence is missing, state the gap and do not assume a pass. Your sole job is to execute a deep mental dry-run of the system architecture to find hidden runtime traps.
-
-CRITICAL REASONING GATES:
-1. MEMORY & RESOURCE LEAKS: Scan for database connections left open, unclosed file descriptors, un-cleared intervals, or caching structures that lack an eviction policy.
-2. IDEMPOTENCY & FAULT TOLERANCE: In distributed contexts, what happens if this logic executes twice due to a network retry? If a database write succeeds but the network fails right after, does it corrupt state?
-3. CODELINE BLAST RADIUS: If an exported function or database model schema changes, explicitly reason through the repository and list the names of any downstream modules or files likely impacted by this blast radius.
-4. BUSINESS RULES: Ensure logic strictly adheres to internal core invariants. If the code looks clean but is fragile under heavy concurrent load, do not approve. Detail the exact runtime execution break path.
-```
-
-Assess coverage for every core change, even if no test file changed; existing tests can satisfy coverage. Flag only an actual gap.
-
-Required evidence: actually executed applicable unit, integration, build, type, lint, security and platform checks, plus relevant fault, concurrency, retry and resource tests. Missing, skipped, errored or zero-test results for applicable checks are not a pass. Non-applicable checks and reviewed-base checks may be marked N/A only with an explicit reason.
+Assess existing and changed tests against the affected behavior. Existing coverage can be sufficient; flag concrete gaps rather than requiring test-file changes mechanically. Report actual applicable check outcomes and meaningful limits; missing, skipped or errored checks are not a pass.
 
 Labels (apply those whose criteria match):
 
